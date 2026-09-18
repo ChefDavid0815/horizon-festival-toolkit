@@ -1,0 +1,74 @@
+{
+  "name": "horizon-festival-toolkit",
+  "version": "0.1.1",
+  "private": true,
+  "description": "FH6 seasonal playlist save workshop",
+  "author": "Festival Toolkit",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "package": "npm run build && electron-builder --win nsis portable --x64",
+    "verify:desktop": "node scripts/verify-desktop.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "@vitejs/plugin-react": "5.1.4",
+    "electron": "44.4.1",
+    "electron-builder": "26.15.3",
+    "vite": "^7.3.6",
+    "@fontsource/barlow-condensed": "^5.2.8",
+    "lucide-react": "0.468.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "build": {
+    "appId": "local.festival.toolkit",
+    "productName": "Horizon Festival Toolkit",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/main.cjs",
+      "electron/preload.cjs",
+      "electron/service.cjs",
+      "electron/profile.cjs",
+      "data/seasons.json",
+      "build/icon.ico",
+      "package.json",
+      "README.md",
+      "THIRD_PARTY.md",
+      "data/OFL.txt",
+      "data/licenses/*",
+      "electron/settings.cjs"
+    ],
+    "extraResources": [
+      {
+        "from": "tools",
+        "to": "tools"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Horizon-Festival-Toolkit-${version}-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Horizon-Festival-Toolkit-${version}-Portable.${ext}"
+    }
+  }
+}

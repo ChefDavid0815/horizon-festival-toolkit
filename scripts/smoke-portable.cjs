@@ -1,0 +1,30 @@
+const {chromium,expect}=require('@playwright/test');
+const {spawn}=require('node:child_process');
+const fs=require('node:fs/promises');
+const path=require('node:path');
+const net=require('node:net');
+const assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..');
+let browser,child;
+(async()=>{
+ const qa=await fs.mkdtemp(path.join(root,'qa/portable-'));
+ const server=net.createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const port=server.address().port;await new Promise(r=>server.close(r));
+ const env={...process.env,FESTIVAL_TEST_DATA:path.join(qa,'user-data'),FESTIVAL_TEST_SCOPE:qa,FESTIVAL_TEST_HIDDEN:'1'};delete env.ELECTRON_RUN_AS_NODE;
+ child=spawn(path.join(root,'release/Horizon-Festival-Toolkit-0.1.1-Portable.exe'),[`--remote-debugging-port=${port}`,'--remote-debugging-address=127.0.0.1'],{env,windowsHide:true,stdio:'ignore'});
+ let ready=false;
+ for(let i=0;i<60;i++){try{const r=await fetch(`http://127.0.0.1:${port}/json/version`);if(r.ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,500));}
+ if(!ready)throw Error('Portable renderer did not start in 30 seconds');
+ browser=await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+ const page=browser.contexts()[0].pages()[0],errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await expect(page.getByRole('combobox',{name:'Language / 语言'})).toBeEnabled();
+ await page.getByRole('combobox',{name:'Language / 语言'}).selectOption('zh');
+ await expect(page.getByRole('heading',{name:'每一周，都值得点亮。'})).toBeVisible();
+ const state=await page.evaluate(()=>window.festival.state());assert.equal(state.summary,null);assert.equal(state.catalog.weeks.length,20);
+ assert.deepEqual(await page.evaluate(()=>window.festival.scan()),[]);
+ await page.setViewportSize({width:1106,height:744});
+ const layout=await page.evaluate(()=>{const card=document.querySelectorAll('.week-card')[3].getBoundingClientRect(),dock=document.querySelector('.action-dock').getBoundingClientRect();return {cardBottom:card.bottom,dockTop:dock.top,width:innerWidth,height:innerHeight};});
+ assert(layout.cardBottom<=layout.dockTop,JSON.stringify(layout));
+ await page.getByRole('button',{name:'使用说明'}).click();await expect(page.getByRole('dialog')).toBeVisible();
+ assert.deepEqual(errors,[]);
+ const report={passed:true,formalSaveAccess:false,carWrites:false,version:state.version,layout,rendererErrors:errors};await fs.writeFile(path.join(qa,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser){try{const s=await browser.newBrowserCDPSession();await s.send('Browser.close');}catch{}await browser.close().catch(()=>{});}else if(child)child.kill();});

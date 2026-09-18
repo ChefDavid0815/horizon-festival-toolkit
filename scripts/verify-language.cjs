@@ -1,0 +1,31 @@
+const {_electron:electron,expect}=require('@playwright/test');
+const fs=require('node:fs/promises');
+const path=require('node:path');
+const assert=require('node:assert/strict');
+const {resolveLocale}=require('../electron/settings.cjs');
+const root=path.resolve(__dirname,'..');
+let app;
+(async()=>{
+ const qa=await fs.mkdtemp(path.join(root,'qa/language-'));
+ const env={...process.env,FESTIVAL_TEST_DATA:qa,FESTIVAL_TEST_SCOPE:qa,FESTIVAL_TEST_HIDDEN:'1'};delete env.ELECTRON_RUN_AS_NODE;
+ const launch=process.env.FESTIVAL_EXECUTABLE?{executablePath:process.env.FESTIVAL_EXECUTABLE,args:[]}:{args:[root]};
+ const errors=[];
+ async function open(){app=await electron.launch({...launch,env,timeout:30000});const p=await app.firstWindow();p.on('pageerror',e=>errors.push(e.message));await expect(p.getByRole('combobox',{name:'Language / 语言'})).toBeEnabled();return p;}
+ let page=await open();const initial=await page.evaluate(()=>window.festival.state());
+ const system=await app.evaluate(({app})=>app.getPreferredSystemLanguages()[0]||app.getLocale());
+ assert.equal(initial.language.preference,'system');assert.equal(initial.language.locale,resolveLocale('system',system));
+ const control=()=>page.getByRole('combobox',{name:'Language / 语言'});
+ await control().selectOption('en');await expect(page.getByRole('heading',{name:'Make every week count.'})).toBeVisible();await expect(page.locator('html')).toHaveAttribute('lang','en');
+ await page.getByRole('tab',{name:/S5/}).click();await page.getByRole('button',{name:'Select S5 week 2 Autumn'}).click();
+ if(!process.env.FESTIVAL_EXECUTABLE)await page.screenshot({path:path.join(root,'qa/desktop-en.png'),animations:'disabled'});
+ await page.setViewportSize({width:1106,height:744});
+ const layout=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,cardBottom:document.querySelectorAll('.week-card')[3].getBoundingClientRect().bottom,dockTop:document.querySelector('.action-dock').getBoundingClientRect().top}));assert(!layout.overflow);assert(layout.cardBottom<layout.dockTop);
+ await page.getByRole('button',{name:'Help',exact:true}).click();await expect(page.getByRole('dialog',{name:'About Festival Toolkit'})).toBeVisible();await expect(page.getByText('Choose a series or individual weeks.',{exact:true})).toBeVisible();await page.keyboard.press('Escape');
+ await page.getByRole('button',{name:'Connect save',exact:true}).click();await expect(page.getByRole('dialog',{name:'Connect your save'})).toBeVisible();await expect(page.getByText(/Encryption and decryption use the ForzaCryptoTool online service/)).toBeVisible();
+ await page.getByLabel('Save file',{exact:true}).fill('relative-path');await page.getByRole('button',{name:'Connect & decrypt'}).click();await expect(page.getByRole('dialog').getByRole('alert')).toHaveText('Choose a local save file',{timeout:20000});await page.keyboard.press('Escape');
+ await control().selectOption('zh');await expect(page.getByRole('heading',{name:'每一周，都值得点亮。'})).toBeVisible();await expect(page.locator('html')).toHaveAttribute('lang','zh-CN');
+ await app.close();app=null;page=await open();await expect(page.getByRole('heading',{name:'每一周，都值得点亮。'})).toBeVisible();assert.equal((await page.evaluate(()=>window.festival.state())).language.preference,'zh');
+ await control().selectOption('system');await expect(control()).toBeEnabled();const final=await page.evaluate(()=>window.festival.state());assert.equal(final.language.preference,'system');assert.equal(final.language.locale,resolveLocale('system',system));assert.equal(final.summary,null);
+ await app.close();app=null;assert.deepEqual(errors,[]);
+ const report={passed:true,system,initial:initial.language,restoredSystem:final.language,manualSwitch:true,restartPersistence:true,englishErrors:true,layout,formalSaveAccess:false,rendererErrors:errors};await fs.writeFile(path.join(qa,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+})().catch(async e=>{console.error(e);if(app)await app.close().catch(()=>{});process.exitCode=1;});

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+release/
+Application/
+qa/
+research/
+.vercel/
+.env
+.env.*
+*.log
+*.bin
+*.exe
+*.blockmap
+C_ProfileData*
+.DS_Store
+Thumbs.db
