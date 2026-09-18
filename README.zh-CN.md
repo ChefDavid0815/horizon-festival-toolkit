@@ -1,4 +1,4 @@
-<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover.svg" width="100%" alt="Festival Toolkit — 浅绿、淡蓝与粉色的四季通行证" /></a>
+<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover-v0.1.1.svg" width="100%" alt="Festival Toolkit — 浅绿、淡蓝与粉色的四季通行证" /></a>
 
 <p align="center"><a href="README.md">English</a> · <b>简体中文</b></p>
 <p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.1.1"><b>WINDOWS 下载 ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">GALLERY ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/post.html?article=festival-toolkit">制作手记 ↗</a></p>

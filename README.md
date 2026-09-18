@@ -1,4 +1,4 @@
-<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover.svg" width="100%" alt="Festival Toolkit — a mint, sky blue and pink pass for four seasons" /></a>
+<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover-v0.1.1.svg" width="100%" alt="Festival Toolkit — a mint, sky blue and pink pass for four seasons" /></a>
 
 <p align="center"><b>English</b> · <a href="README.zh-CN.md">简体中文</a></p>
 <p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.1.1"><b>WINDOWS DOWNLOAD ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">THE EXHIBITION ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/post.html?article=festival-toolkit">BUILD JOURNAL ↗</a></p>
