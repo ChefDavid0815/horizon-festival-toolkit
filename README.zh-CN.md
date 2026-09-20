@@ -1,74 +1,81 @@
-<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover-v0.1.1.svg" width="100%" alt="Festival Toolkit — 浅绿、淡蓝与粉色的四季通行证" /></a>
+<img src="docs/assets/cover-v0.2.0.svg" width="100%" alt="Horizon Festival Toolkit 0.2.0 — mint, blue and pink festival pass. 647 models, an updatable catalogue and a garage." />
 
 <p align="center"><a href="README.md">English</a> · <b>简体中文</b></p>
-<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.1.1"><b>WINDOWS 下载 ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">GALLERY ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/post.html?article=festival-toolkit">制作手记 ↗</a></p>
 
-### `01` &nbsp; 每一周，都值得点亮。
 
-**Horizon Festival Toolkit** 是 ChefZC 制作的 FH6 季节赛存档工坊。查看记录、选定需要处理的周、在修改前留下备份，把几个步骤放进一个清楚的 Windows 界面。
+<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.2.0"><b>DOWNLOAD 0.2.0 ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#festival-history">VERSION JOURNAL ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">CHANGELOG ↗</a></p>
 
-展柜采用浅绿底、淡蓝与粉色，延续软件的凝缩字体、斜切标签和四季卡片。下面是软件本身的真实界面。
+# Horizon Festival Toolkit · V0.2.0
 
-<img src="docs/assets/workspace.png" width="100%" alt="Festival Toolkit 0.1.1 真实界面，处于未连接存档状态" />
+FH6 季节赛、车辆库存与可独立更新的内容工坊。保留荧光绿、粉色和浅蓝底，升级卡片、工作区和动效，支持减少动态效果的系统偏好。
 
-| 05 / 赛季 | 20 / 季节赛周 | 02 / 界面语言 |
-| :--- | :--- | :--- |
-| 当前目录 S1–S5 | 按周、按赛季、全选已识别记录 | 简体中文、English、跟随系统 |
+| 季节赛 | 车辆收藏 | 内容更新 | 语言 |
+| --- | --- | --- | --- |
+| 动态系列赛与周选择 | 内置 647 款车型 | 游戏资源同步与离线内容包 | 中文 / English / 跟随系统 |
 
-### `02` &nbsp; 工坊里有什么
+## 新功能
 
-- 查看季节积分、活动完成记录及已识别的周。
-- 选定某周、一个赛季，或全部已识别记录后修改。
-- 写入之前备份原文件；已有的 `C_ProfileData_SCopy` 也纳入处理，恢复时分别还原各自原文件。
-- 处理加密存档前做解密回读一致性校验；备份恢复前做完整性校验。
-- 记住手动语言偏好。启动时不自动连接、修改或恢复存档。
-- **不包含加车功能**，季节赛修改保持车库数据库字节不变。
+- 左侧系列赛海报读取对应的游戏内总封面。S1–S5 各用自己的海报，四季卡片保留现有样式；内容同步也会更新新系列赛封面。
 
-### `03` &nbsp; 开始之前
+- 按车型、品牌、年份或车辆 ID 搜索；支持常用中文品牌别名。
+- 单车一次增加 1–20 台库存，已有车型也能添加；一键补齐模式仅给缺失车型各添加 1 台。
+- 选择一周、一个系列赛或全部已识别季节。车辆和季节赛修改可以一起应用。
+- 从本地游戏资源读取新系列赛和新车辆配置。可在启动时及运行期间每 30 分钟同步；兼容的新内容无需重装 Toolkit。
+- 导入、导出独立 JSON 内容包，保留历史目录。
+- 写入前自动备份；恢复时分别校验原文件与 SCopy；加密存档先完成加密、解密回读再写回。
 
-当前版本为 **0.1.1 / 预发布**，提供 Windows x64 安装版和免安装版，未签名。先退出游戏，再选择 `C_ProfileData`。只有点击“备份并应用修改”才写回文件。备份页可查看恢复点；卸载不会删除应用备份。
+启动时不连接或修改存档。点击“备份并应用修改”才会执行所选变更。加车会检查原有车辆、其他数据库表和非目标状态块保持不变。
 
-**数据流：** 加密存档通过随附的 [ForzaCryptoTool](https://github.com/DVS-code/Forza-Crypto-Tool) 交给 `forzamods.dev` 在线处理，会上传所选文件。界面在连接前说明这一点。离线或服务变更可能导致加解密失败；不内置账号密码或私人 API 密钥。
+## 打开软件
 
-**适配边界：** 目录基于 FH6 `2.440.853.0` 资源；仅处理已识别的 FestivalPass v4 / schema `0x6efc7e34`，未知布局停止。游戏实际读档、卡片全部发亮、独立挑战子状态、奖励发放与线上同步尚未验证。字段写入成功不等于全部游戏内效果已成立。
+**[下载 Windows x64 0.2.0](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.2.0)** — 安装版、免安装版与 SHA-256 校验文件，安装包均未签名：
 
-这是 **Windows 原生桌面工具**。`npm run dev` 只提供界面开发环境，存档功能依赖 Electron 的文件接口；没有可独立使用的网页版。
+- [Horizon-Festival-Toolkit-0.2.0-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/Horizon-Festival-Toolkit-0.2.0-Setup.exe)
+- [Horizon-Festival-Toolkit-0.2.0-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/Horizon-Festival-Toolkit-0.2.0-Portable.exe)
+- [SHA256SUMS-0.2.0.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/SHA256SUMS-0.2.0.txt)
 
-### `04` &nbsp; 从源码开始
-
-需要 Node.js、npm 与 Windows。Git 中包含应用源码、目录数据、设计素材与构建配置；依赖、私人存档样本和安装包不进入源码历史。
+源码启动需要 Node.js 与 npm：
 
 ```powershell
-git clone https://github.com/ChefDavid0815/horizon-festival-toolkit.git
-cd horizon-festival-toolkit
 npm ci
 npm run build
 npm start
 ```
 
-加密存档操作和完整打包需要先按 [tools/README.md](tools/README.md) 安装并核验上游工具，随后 `npm run package` 生成 NSIS 安装版与免安装版。
+按 [tools/README.md](tools/README.md) 安装并核验上游工具后，运行 `npm run package` 打包。`npm run dev` 仅用于界面开发；存档功能依赖 Electron，没有独立可用的网页版。
 
-无需私人存档即可运行的测试：
 
-```powershell
-New-Item -ItemType Directory -Force qa
-node --test tests/service.test.cjs tests/settings.test.cjs
-```
+## 打开工坊，看一看
 
-完整 `npm test` 与桌面 QA 需要开发者自己提供 `qa/cli-roundtrip.bin`，这是不公开的解密测试副本。测试隔离目录与正式游戏存档分开。本次发布检查：**构建通过，12/12 核心测试通过**；已存在的桌面验证记录包含安装版、免安装版、语言切换与持久化，本次未重新执行桌面 UI 流程。见 [验证说明](docs/VERIFICATION.md)。
+真实 Windows 0.2.0 截图，中文界面，未连接存档。界面中的游戏海报归各自权利人所有。
 
-| 目录 | 内容 |
-| :--- | :--- |
-| `src/` | React 界面、双语文案、Barlow Condensed 字体 |
-| `electron/` | 原生 IPC、存档解析、事务备份、恢复与语言偏好 |
-| `data/` | 资源目录与第三方许可；不含玩家存档 |
-| `scripts/`、`tests/` | 构建工具与隔离验证 |
-| `docs/assets/` | 原创展柜封面与断开连接状态的软件截图 |
+<img src="docs/assets/workspace-v0.2.png" width="100%" alt="Festival Toolkit 0.2.0 — playlist and four seasonal cards" />
 
-### `05` &nbsp; 来源与版本
+<details>
+<summary><b>打开车库 / 647 款车型</b></summary>
 
-[版本记录](CHANGELOG.md) · [第三方说明](THIRD_PARTY.md) · [ChefZC](https://github.com/ChefDavid0815)
+<img src="docs/assets/garage-v0.2.png" width="100%" alt="Festival Toolkit 0.2.0 — searchable garage, disconnected" />
 
-个人非官方项目，与 Microsoft、Xbox、Playground Games 无隶属关系。游戏名称、摄影和资源归原权利人所有；第三方组件保留各自许可。本仓库不为这些内容授予额外权利。发布文件的 SHA-256 校验和随版本提供。
+</details>
+
+## 长期内容更新
+
+在“更新中心”选择 FH6 安装目录。程序直接解析 `media/ObjectModelGame.zip` 中的季节赛定义，使用 `media/Stripped/gamedbRC.slt` 建立车辆原厂配置。新的加密车辆数据库需要启用在线解密或导入内容包；内容同步本身不读取玩家存档。
+
+新系列赛必须已存在于所连接存档。可以先在游戏内打开新系列赛，再退出并重新连接。新事件类型、加密方式或存档 schema 变化仍需适配；不会因为导入了目录就凭空写入未知结构。
+
+见 [V0.2 使用指南](docs/RELEASE-0.2.0.md) 和 [内容包格式](docs/CONTENT-PACKS.md)。
+
+## 验证与边界
+
+`npm test` 检查存档、车库、目录、恢复和语言偏好；完整测试与 `npm run verify:desktop` 需要开发者自己的 `qa/cli-roundtrip.bin`。私人样本不进入 Git，也不进入安装包。见 [验证记录](docs/VERIFICATION.md)。
+
+加密**玩家存档**仍通过 [ForzaCryptoTool](https://github.com/DVS-code/Forza-Crypto-Tool) 在线处理，会上传所选文件到 `forzamods.dev`；连接弹窗会说明。启用新车辆资源在线解密则会发送**游戏资源** `gamedbRC.slt`。没有内置私人账号或密钥。
+
+尚未验证真实游戏读档、驾驶、奖励、独立挑战子状态、线上同步或未来格式。加车不会授予 DLC 购买权益。当前季节赛适配 FestivalPass v4 / schema `0x6efc7e34`；工具自身限制车库总量不超过 2,000 台。
+
+[版本记录](CHANGELOG.md) · [第三方来源](THIRD_PARTY.md)
+
+个人非官方项目，与 Microsoft、Xbox、Playground Games 无隶属关系。游戏资源与商标属于其权利人。
 
 **YOUR FESTIVAL. YOUR WAY.**

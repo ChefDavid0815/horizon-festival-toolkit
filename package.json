@@ -1,8 +1,8 @@
 {
   "name": "horizon-festival-toolkit",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
-  "description": "FH6 seasonal playlist save workshop",
+  "description": "FH6 playlist, garage and live content workshop",
   "author": "Festival Toolkit",
   "main": "electron/main.cjs",
   "scripts": {
@@ -11,18 +11,19 @@
     "start": "electron .",
     "test": "node --test tests/*.test.cjs",
     "package": "npm run build && electron-builder --win nsis portable --x64",
-    "verify:desktop": "node scripts/verify-desktop.cjs"
+    "verify:desktop": "node scripts/verify-v2.cjs",
+    "verify:resources": "node scripts/verify-resources.cjs"
   },
   "devDependencies": {
+    "@fontsource/barlow-condensed": "^5.2.8",
     "@playwright/test": "1.58.2",
     "@vitejs/plugin-react": "5.1.4",
     "electron": "44.4.1",
     "electron-builder": "26.15.3",
-    "vite": "^7.3.6",
-    "@fontsource/barlow-condensed": "^5.2.8",
     "lucide-react": "0.468.0",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "vite": "^7.3.6"
   },
   "build": {
     "appId": "local.festival.toolkit",
@@ -33,10 +34,6 @@
     },
     "files": [
       "dist/**/*",
-      "electron/main.cjs",
-      "electron/preload.cjs",
-      "electron/service.cjs",
-      "electron/profile.cjs",
       "data/seasons.json",
       "build/icon.ico",
       "package.json",
@@ -44,7 +41,13 @@
       "THIRD_PARTY.md",
       "data/OFL.txt",
       "data/licenses/*",
-      "electron/settings.cjs"
+      "electron/**/*.cjs",
+      "data/cars.json",
+      "docs/RELEASE-0.2.0.md",
+      "docs/CONTENT-PACKS.md",
+      "README.zh-CN.md",
+      "CHANGELOG.md",
+      "docs/VERIFICATION.md"
     ],
     "extraResources": [
       {
@@ -70,5 +73,12 @@
     "portable": {
       "artifactName": "Horizon-Festival-Toolkit-${version}-Portable.${ext}"
     }
+  },
+  "dependencies": {
+    "adm-zip": "0.6.1",
+    "fast-xml-parser": "5.11.1",
+    "pngjs": "7.0.0",
+    "sql.js": "1.14.2",
+    "tex-decoder": "2.0.0"
   }
 }

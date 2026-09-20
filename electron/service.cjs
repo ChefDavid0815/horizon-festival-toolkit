@@ -4,6 +4,10 @@ const fs = require("node:fs/promises"),
   { execFile } = require("node:child_process"),
   { randomUUID } = require("node:crypto");
 const profile = require("./profile.cjs");
+const garage = require('./garage.cjs');
+const { CatalogStore, digest } = require('./catalog.cjs');
+const { readResources } = require('./resources.cjs');
+const { ArtworkStore } = require('./artwork.cjs');
 const TOOL_SHA =
   "4b08e2f42e581281c0409009f8ea53f828a0a23e6633d0b79cdc7585ca705212";
 const run = (exe, args, timeout = 180000) =>
@@ -31,6 +35,9 @@ class Service {
     this.testRoot = testRoot ? path.resolve(testRoot) : null;
     this.session = null;
     this.busy = false;
+    this.catalogs = new CatalogStore(dataDir);
+    this.artwork = new ArtworkStore(dataDir);
+    this.syncSettings = { gamePath:'', autoSync:false, allowOnline:false };
   }
   checkPath(file) {
     if (this.testRoot) {
@@ -42,6 +49,54 @@ class Service {
   async init() {
     await fs.mkdir(this.dataDir, { recursive: true });
     await fs.mkdir(path.join(this.dataDir, "backups"), { recursive: true });
+    if (!this.initialized) {
+      await this.catalogs.init();
+      await this.artwork.init();
+      try { const config=JSON.parse(await fs.readFile(path.join(this.dataDir,'content-settings.json'),'utf8')); if(typeof config.gamePath==='string') this.syncSettings={gamePath:config.gamePath,autoSync:config.autoSync===true,allowOnline:config.allowOnline===true}; } catch {}
+      this.initialized=true;
+    }
+  }
+  catalogState() {
+    return {catalog:this.catalogs.seasons,cars:this.catalogs.cars.cars.map(({row,...c})=>c),content:this.catalogs.summary(),artwork:this.artwork.view(),syncSettings:this.syncSettings,summary:this.summary()};
+  }
+  async configureSync(value) {
+    return this.exclusive(async()=>{
+      if(!value || typeof value.gamePath!=='string' || value.gamePath.length>1024 || (value.gamePath&&!path.isAbsolute(value.gamePath)) || typeof value.autoSync!=='boolean' || typeof value.allowOnline!=='boolean')throw Error('更新设置无效');
+      if(value.gamePath)this.checkPath(path.join(value.gamePath,'media','ObjectModelGame.zip'));
+      const config={gamePath:value.gamePath,autoSync:value.autoSync,allowOnline:value.allowOnline};
+      const file=path.join(this.dataDir,'content-settings.json'),tmp=file+'.'+randomUUID()+'.tmp';
+      try{await fs.writeFile(tmp,JSON.stringify(config),{flag:'wx'});await fs.rename(tmp,file);}finally{await fs.rm(tmp,{force:true});}
+      this.syncSettings=config;return config;
+    });
+  }
+  async inspect(plain) {
+    let weeks=[],carSummary=null,seasonError=null,garageError=null;
+    try{weeks=profile.inspectSeasons(plain,this.catalogs.seasons);}catch(e){seasonError=e.message;}
+    try{carSummary=await garage.inspectGarage(plain,this.catalogs.cars);}catch(e){garageError=e.message;}
+    if(seasonError&&garageError)throw Error(seasonError+' / '+garageError);
+    return {weeks,garage:carSummary,seasonError,garageError};
+  }
+  async acceptCatalog(incoming,source) {
+    const pack=this.catalogs.preview(incoming,source);
+    const before=this.catalogs.summary();
+    if(digest({seasons:pack.seasons,cars:pack.cars})===before.fingerprint)return {...this.catalogState(),unchanged:true,addedWeeks:0,addedCars:0};
+    await this.catalogs.commit(pack);
+    if(this.session){try{Object.assign(this.session,await this.inspect(this.session.plain));}catch{this.session=null;}}
+    return {...this.catalogState(),addedWeeks:this.catalogs.summary().weeks-before.weeks,addedCars:this.catalogs.summary().cars-before.cars};
+  }
+  async importCatalog(file) {
+    return this.exclusive(async()=>{this.checkPath(file);return this.acceptCatalog(await this.catalogs.readFile(file),'import');});
+  }
+  async syncCatalog() {
+    return this.exclusive(async()=>{
+      const {gamePath,allowOnline}=this.syncSettings;
+      this.checkPath(path.join(gamePath,'media','ObjectModelGame.zip'));
+      const r=await readResources({gamePath,allowOnline,previousCars:this.catalogs.cars,toolPath:this.toolPath,ready:()=>this.ready(),run,tick:(p,m)=>this.tick(p,m)});
+      const result=await this.acceptCatalog(r.pack,'game');
+      this.tick(92,'读取游戏系列赛封面');
+      const artwork=await this.artwork.sync(gamePath,this.catalogs.summary().series);
+      this.tick(100,'内容目录已更新');return {...result,artwork,unchanged:!!result.unchanged&&!artwork.changed,carsPending:r.carsPending};
+    });
   }
   async exclusive(fn) {
     if (this.busy) throw Error("另一个操作正在进行");
@@ -140,7 +195,7 @@ class Service {
         }
       } else plain = input;
       this.tick(60, "核对赛季");
-      const weeks = profile.inspectSeasons(plain);
+      const inspected = await this.inspect(plain);
       const parsed = profile.parse(plain);
       const originalNow = await fs.readFile(file);
       if (!input.equals(originalNow))
@@ -150,7 +205,7 @@ class Service {
         plain: Buffer.from(plain),
         encrypted,
         sourceHash: profile.sha(input),
-        weeks,
+        ...inspected,
         xuid: parsed.states[0].id.toString(),
       };
       this.tick(100, "存档已连接");
@@ -159,8 +214,8 @@ class Service {
   }
   summary() {
     if (!this.session) return null;
-    const { file, encrypted, sourceHash, weeks, xuid } = this.session;
-    return { file, encrypted, sourceHash, weeks, xuid };
+    const { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid } = this.session;
+    return { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid };
   }
   async backups() {
     await this.init();
@@ -263,12 +318,12 @@ class Service {
       if (
         !options ||
         typeof options !== "object" ||
-        Object.keys(options).some((k) => k !== "weeks")
+        Object.keys(options).some((k) => !['weeks','cars','allCars'].includes(k))
       )
-        throw Error("本版本只允许季节赛编辑，不提供加车功能");
-      const { weeks = [] } = options;
+        throw Error("修改请求无效");
+      const { weeks = [], cars = [], allCars = false } = options;
       if (!this.session) throw Error("先连接一个存档");
-      if (!Array.isArray(weeks) || !weeks.length)
+      if (!Array.isArray(weeks) || !Array.isArray(cars) || typeof allCars!=='boolean' || (!weeks.length && !cars.length && !allCars))
         throw Error("请选择要修改的内容");
       await this.gameClosed();
       const s = this.session;
@@ -277,15 +332,16 @@ class Service {
         audit = [];
       this.tick(8, "生成修改副本");
       if (weeks.length) {
-        const p = profile.patchSeasons(b, weeks);
+        const p = profile.patchSeasons(b, weeks, this.catalogs.seasons);
         b = p.buffer;
         audit.push(p.audit);
       }
-      const checkedWeeks = profile.inspectSeasons(b);
+      if(cars.length || allCars){const p=await garage.patchGarage(b,{cars,allCars},this.catalogs.cars);b=p.buffer;audit.push(p.audit);}
+      const inspected = await this.inspect(b);
       const originalDb = profile.parse(s.plain).database,
         editedDb = profile.parse(b).database;
       if (
-        !s.plain
+        !cars.length && !allCars && !s.plain
           .subarray(originalDb.start, originalDb.end)
           .equals(b.subarray(editedDb.start, editedDb.end))
       )
@@ -324,7 +380,7 @@ class Service {
           ...s,
           plain: Buffer.from(b),
           sourceHash: profile.sha(bytes),
-          weeks: checkedWeeks,
+          ...inspected,
         };
         this.tick(100, "修改已写回，备份已保留");
         return { summary: this.summary(), backupId: backup.id, audit };

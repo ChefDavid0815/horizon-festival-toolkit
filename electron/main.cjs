@@ -60,13 +60,18 @@ app.whenReady().then(async () => {
     });
   handle("state", async () => ({
     summary: service.summary(),
-    catalog: require("../data/seasons.json"),
+    ...service.catalogState(),
     backups: await service.backups(),
     version: app.getVersion(),
     dataDir: app.getPath("userData"),
     language: preferences.current(),
   }));
   handle("language", (value) => preferences.setLanguage(value));
+  handle('contentSettings', value=>service.configureSync(value));
+  handle('syncCatalog', ()=>service.syncCatalog());
+  handle('chooseGame', async()=>{const r=await dialog.showOpenDialog(win,{properties:['openDirectory']});return r.canceled?null:r.filePaths[0];});
+  handle('importCatalog', async()=>{const r=await dialog.showOpenDialog(win,{properties:['openFile'],filters:[{name:'Festival content pack',extensions:['json']}]});return r.canceled?null:service.importCatalog(r.filePaths[0]);});
+  handle('exportCatalog', async()=>{const r=await dialog.showSaveDialog(win,{defaultPath:'festival-content-v2.json',filters:[{name:'Festival content pack',extensions:['json']}]});if(r.canceled)return null;service.checkPath(r.filePath);await require('node:fs/promises').writeFile(r.filePath,JSON.stringify(service.catalogs.pack,null,2));return r.filePath;});
   handle("scan", () => service.scan());
   handle("load", (p) => service.load(p));
   handle("apply", (o) => service.apply(o));
@@ -86,5 +91,9 @@ app.whenReady().then(async () => {
     shell.openPath(path.join(app.getPath("userData"), "backups")),
   );
   await win.loadFile(path.join(root, "dist/index.html"));
+  const autoSync=async()=>{if(service.syncSettings.autoSync && service.syncSettings.gamePath && !service.busy){try{const result=await service.syncCatalog();if(!result.unchanged||result.carsPending)win?.webContents.send('contentUpdated',{ok:true,...result});}catch(error){win?.webContents.send('contentUpdated',{ok:false,error:error.message});}}};
+  setTimeout(autoSync,2000).unref();
+  const timer=setInterval(autoSync,30*60*1000);timer.unref();
+  win.on('closed',()=>clearInterval(timer));
 });
 app.on("window-all-closed", () => app.quit());

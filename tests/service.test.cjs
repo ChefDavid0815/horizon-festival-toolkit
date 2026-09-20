@@ -23,12 +23,13 @@ test("isolated mode never scans local game saves and rejects outside paths", asy
     /隔离/,
   );
 });
-test("all car operations are rejected by the backend", async () => {
+test("car operations require a connected profile and unknown options are refused", async () => {
   const { s } = await setup();
   await assert.rejects(
     () => s.apply({ weeks: ["1:0"], allCars: true }),
-    /不提供加车/,
+    /先连接/,
   );
+  await assert.rejects(()=>s.apply({credits:999}),/修改请求无效/);
 });
 test("transaction and restore preserve distinct original file pairs", async () => {
   const { s, dir } = await setup();

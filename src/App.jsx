@@ -19,9 +19,13 @@ import {
   Flag,
   Layers,
   CheckCircle2,
+  CarFront,
+  RefreshCw,
 } from "lucide-react";
 import { LanguageContext, useI18n } from "./Language.jsx";
 import { translate, browserLocale } from "./i18n.mjs";
+import Garage from './Garage.jsx';
+import Updates from './Updates.jsx';
 const api = window.festival;
 const seasonIcons = [CloudSun, Leaf, Snowflake, Flower2];
 const seriesNames = [
@@ -42,7 +46,7 @@ function WeekCard({ week, selected, toggle, disabled }) {
     <button
       className={`week-card season-${week.week} ${selected ? "selected" : ""}`}
       aria-pressed={selected}
-      aria-label={t("\u9009\u62E9 S{0} \u7B2C{1}\u5468 {2}", [
+      aria-label={t("选择 S{0} 第{1}周 {2}", [
         week.series,
         week.week + 1,
         t(week.season),
@@ -78,19 +82,19 @@ function WeekCard({ week, selected, toggle, disabled }) {
             {week.complete ? (
               <>
                 <CheckCircle2 size={13} />
-                {t("\u5DF2\u5B8C\u6210")}
+                {t("已完成")}
               </>
             ) : week.available === false ? (
-              t("\u6B64\u5B58\u6863\u5C1A\u672A\u8BB0\u5F55")
+              t("此存档尚未记录")
             ) : (
-              t("{0} / {1} \u9879\u6311\u6218", [
+              t("{0} / {1} 项挑战", [
                 week.completed ?? "—",
                 week.events.length,
               ])
             )}
           </span>
           <span>
-            {selected ? t("\u5DF2\u9009\u62E9") : t("\u9009\u62E9\u6B64\u5468")}
+            {selected ? t("已选择") : t("选择此周")}
           </span>
         </div>
       </div>
@@ -105,7 +109,7 @@ function Modal({ title, children, close }) {
   useEffect(() => {
     const previous = document.activeElement;
     const items = () =>
-      [...root.current.querySelectorAll('button,input,[tabindex="0"]')].filter(
+      [...root.current.querySelectorAll('button,input,select,[tabindex="0"]')].filter(
         (e) => !e.disabled && e.offsetParent !== null,
       );
     items()[0]?.focus();
@@ -147,7 +151,7 @@ function Modal({ title, children, close }) {
         <div className="modal-heading">
           <h2>{title}</h2>
           <button className="small-btn" onClick={close}>
-            {t("\u5173\u95ED")}
+            {t("关闭")}
             <Key>Esc</Key>
           </button>
         </div>
@@ -161,8 +165,10 @@ export default function App() {
   const [state, setState] = useState(null),
     [summary, setSummary] = useState(null),
     [tab, setTab] = useState("seasons"),
-    [series, setSeries] = useState(4),
+    [series, setSeries] = useState(5),
     [selected, setSelected] = useState([]),
+    [carQueue, setCarQueue] = useState([]),
+    [allCars, setAllCars] = useState(false),
     [busy, setBusy] = useState(false),
     [progress, setProgress] = useState({
       percent: 0,
@@ -189,7 +195,9 @@ export default function App() {
         setBackups(s.backups);
       })
       .catch((e) => setError(e.message));
-    return api.onProgress(setProgress);
+    const progressOff=api.onProgress(setProgress);
+    const contentOff=api.onContentUpdated(r=>{if(r.ok)acceptContent(r);else setError(r.error);});
+    return ()=>{progressOff();contentOff();};
   }, []);
   const locale = state?.language?.locale || browserLocale();
   const t = (key, values) => translate(locale, key, values);
@@ -210,7 +218,11 @@ export default function App() {
       setLanguageSaving(false);
     }
   }
-  const weeks = summary?.weeks || state?.catalog.weeks || [];
+  const weeks = summary && !summary.seasonError ? summary.weeks : state?.catalog.weeks || [];
+  const seriesIds = [...new Set(weeks.map(w=>w.series))].sort((a,b)=>a-b);
+  const seriesName = id => t(seriesNames[id] || weeks.find(w=>w.series===id)?.title || `SERIES ${id}`);
+  const queuedCars = allCars ? (summary?.garage?.missing.length ?? state?.cars?.length ?? 0) : carQueue.reduce((n,c)=>n+c.quantity,0);
+  const overCapacity = !!summary?.garage && summary.garage.total + queuedCars > summary.garage.capacity;
   const visibleWeeks = weeks.filter((w) => w.series === series);
   const selectedWeeks = weeks.filter((w) => selected.includes(w.key));
   const selectedPoints = selectedWeeks.reduce((n, w) => n + w.maxPoints, 0);
@@ -218,6 +230,7 @@ export default function App() {
     setError("");
     setNotice("");
     setBusy(true);
+    setProgress({percent:0,message:''});
     try {
       return await fn();
     } catch (e) {
@@ -225,6 +238,11 @@ export default function App() {
     } finally {
       setBusy(false);
     }
+  }
+  function acceptContent(result){
+    if(result.unchanged){setNotice(result.carsPending?'季节目录已更新；新车辆资源待解密，请在更新中心启用在线解密或导入数据包。':'内容目录已是最新。');return;}
+    setState(s=>({...s,...result}));setSummary(result.summary);setSelected([]);setCarQueue([]);setAllCars(false);
+    setNotice(result.carsPending?'季节目录已更新；新车辆资源待解密，请在更新中心启用在线解密或导入数据包。':'内容目录已更新，已清空选择以使用最新数据。');
   }
   async function openConnect() {
     setConnect(true);
@@ -249,6 +267,7 @@ export default function App() {
       const s = await api.load(file);
       setSummary(s);
       setSelected([]);
+      setCarQueue([]);setAllCars(false);
       setConnect(false);
       setNotice("");
     });
@@ -275,14 +294,17 @@ export default function App() {
       });
       const result = await api.apply({
         weeks: selected,
+        cars: carQueue,
+        allCars,
       });
       setSummary(result.summary);
       setBackups(await api.backups());
       setSelected([]);
+      setCarQueue([]);setAllCars(false);
       setNotice(
         result.unchanged
           ? "所选内容已完成，存档无需修改。"
-          : "已写回所选季节赛进度，自动备份已保存。",
+          : "所选季节赛与车辆库存已写回，自动备份已保存。",
       );
     });
   }
@@ -293,6 +315,7 @@ export default function App() {
       await api.restore(id);
       setSummary(null);
       setSelected([]);
+      setCarQueue([]);setAllCars(false);
       setBackups(await api.backups());
       setNotice("原存档已恢复；恢复前的版本也已备份。重新连接可查看结果。");
     });
@@ -316,7 +339,7 @@ export default function App() {
                 <span>6</span>
               </div>
               <div className="brand-sub">
-                {t("\u5730\u5E73\u7EBF \xB7 \u5B58\u6863\u5DE5\u574A")}
+                {t("地平线 · 存档工坊")}
                 <i>UNOFFICIAL COMPANION</i>
               </div>
             </div>
@@ -336,7 +359,7 @@ export default function App() {
               </select>
             </label>
             <span className="build-label">
-              WINDOWS EDITION <b>V{state?.version || "0.1.1"}</b>
+              WINDOWS EDITION <b>V{state?.version || "0.2.0"}</b>
             </span>
             <button
               className="profile-button"
@@ -347,26 +370,28 @@ export default function App() {
               <div>
                 <small>
                   {summary
-                    ? t("\u5B58\u6863\u5DF2\u8FDE\u63A5")
+                    ? t("存档已连接")
                     : t(
-                        "\u4F60\u7684\u65C5\u7A0B\uFF0C\u4ECE\u8FD9\u91CC\u5F00\u59CB",
+                        "你的旅程，从这里开始",
                       )}
                 </small>
                 <strong>
                   {summary
-                    ? t("\u73A9\u5BB6 {0}", [summary.xuid.slice(-6)])
-                    : t("\u8FDE\u63A5\u672C\u5730\u5B58\u6863")}
+                    ? t("玩家 {0}", [summary.xuid.slice(-6)])
+                    : t("连接本地存档")}
                 </strong>
               </div>
               <ChevronRight size={17} />
             </button>
           </div>
         </header>
-        <nav className="main-nav" aria-label={t("\u529F\u80FD\u5BFC\u822A")}>
+        <nav className="main-nav" aria-label={t("功能导航")}>
           <span className="nav-mark">H / 06</span>
           {[
-            ["seasons", t("\u5B63\u8282\u8D5B"), Flag],
-            ["backups", t("\u5907\u4EFD\u4E0E\u6062\u590D"), History],
+            ["seasons", t("季节赛"), Flag],
+            ['garage',t('车辆收藏'),CarFront],
+            ['updates',t('更新中心'),RefreshCw],
+            ["backups", t("备份与恢复"), History],
           ].map(([id, label, Icon]) => (
             <button
               key={id}
@@ -375,13 +400,13 @@ export default function App() {
             >
               <Icon size={17} />
               {label}
-              <span>{id === "seasons" ? "PLAYLIST" : "RECOVERY"}</span>
+              <span>{{seasons:'PLAYLIST',garage:'GARAGE',updates:'CONTENT',backups:'RECOVERY'}[id]}</span>
             </button>
           ))}
           <div className="nav-spacer" />
           <button className="about-btn" onClick={() => setInfo(true)}>
             <Info size={17} />
-            {t("\u4F7F\u7528\u8BF4\u660E")}
+            {t("使用说明")}
           </button>
         </nav>
         <main>
@@ -399,6 +424,9 @@ export default function App() {
               <button onClick={() => setNotice("")}>×</button>
             </div>
           ) : null}
+          {tab==='seasons' && summary?.seasonError ? <div className="message error" role="alert">{t(summary.seasonError)}</div> : null}
+          {tab === 'garage' ? <Garage cars={state?.cars||[]} summary={summary} queue={carQueue} setQueue={setCarQueue} allCars={allCars} setAllCars={setAllCars} busy={busy}/> : null}
+          {tab === 'updates' ? <Updates state={state} busy={busy} api={api} action={action} accept={acceptContent} notice={setNotice}/> : null}
           {tab === "seasons" ? (
             <>
               <section className="page-intro">
@@ -406,13 +434,13 @@ export default function App() {
                   <div className="eyebrow">YOUR FESTIVAL. YOUR WAY.</div>
                   <h1>
                     {t(
-                      "\u6BCF\u4E00\u5468\uFF0C\u90FD\u503C\u5F97\u70B9\u4EAE",
+                      "每一周，都值得点亮",
                     )}
                     <span>{t("。")}</span>
                   </h1>
                   <p>
                     {t(
-                      "\u6311\u9009\u4F60\u7684\u8D5B\u5B63\u4E0E\u5B63\u8282\uFF0C\u6279\u91CF\u7F16\u8F91\u6574\u5468\u7684\u5B8C\u6210\u8BB0\u5F55\u4E0E\u5B63\u8282\u79EF\u5206\u3002",
+                      "挑选你的赛季与季节，批量编辑整周的完成记录与季节积分。",
                     )}
                   </p>
                 </div>
@@ -429,24 +457,24 @@ export default function App() {
                     disabled={busy}
                   >
                     <CheckCheck size={16} />
-                    {t("\u5168\u9009\u6240\u6709\u8D5B\u5B63")}
+                    {t("全选所有赛季")}
                   </button>
                   <button
                     className="text-btn"
                     onClick={() => setSelected([])}
                     disabled={!selected.length || busy}
                   >
-                    {t("\u6E05\u7A7A\u9009\u62E9")}
+                    {t("清空选择")}
                   </button>
                 </div>
               </section>
               <div
                 className="series-tabs"
                 role="tablist"
-                aria-label={t("\u8D5B\u5B63")}
+                aria-label={t("赛季")}
               >
                 <span>SERIES</span>
-                {[1, 2, 3, 4, 5].map((s) => (
+                {seriesIds.map((s) => (
                   <button
                     role="tab"
                     aria-selected={series === s}
@@ -455,7 +483,7 @@ export default function App() {
                     className={series === s ? "active" : ""}
                   >
                     <b>S{s}</b>
-                    <span>{t(seriesNames[s])}</span>
+                    <span>{seriesName(s)}</span>
                     {summary?.weeks.some((w) => w.series === s) &&
                     summary.weeks
                       .filter((w) => w.series === s)
@@ -466,8 +494,8 @@ export default function App() {
                 ))}
               </div>
               <section className="festival-layout">
-                <article className="series-poster">
-                  <div className="poster-bg" />
+                <article className={`series-poster ${state?.artwork?.series?.[series]?'has-game-art':''}`}>
+                  {state?.artwork?.series?.[series] ? <img className="series-game-art" src={state.artwork.series[series].url} alt={t('S{0} 游戏内系列赛封面',[series])} title={state.artwork.series[series].source}/> : <div className="poster-bg" />}
                   <div className="poster-top">
                     <span className="label-pink">FESTIVAL PLAYLIST</span>
                     <span className="poster-number">S{series}</span>
@@ -483,12 +511,12 @@ export default function App() {
                       ))}
                     </h2>
                     <span className="poster-chinese">
-                      {t(seriesNames[series])}
+                      {seriesName(series)}
                     </span>
                   </div>
                   <div className="poster-bottom">
                     <div>
-                      <small>{t("\u8D5B\u5B63\u79EF\u5206")}</small>
+                      <small>{t("赛季积分")}</small>
                       <strong>
                         {summary ? activeSeriesPoints : "—"}
                         <span> / {activeSeriesMax}</span>
@@ -504,8 +532,8 @@ export default function App() {
                     <button onClick={selectSeries} disabled={busy}>
                       <Layers size={17} />
                       {visibleWeeks.every((w) => selected.includes(w.key))
-                        ? t("\u53D6\u6D88\u672C\u8D5B\u5B63")
-                        : t("\u9009\u62E9\u6574\u4E2A\u8D5B\u5B63")}
+                        ? t("取消本赛季")
+                        : t("选择整个赛季")}
                       <ArrowUpRight size={18} />
                     </button>
                   </div>
@@ -514,9 +542,9 @@ export default function App() {
                   <div className="section-label">
                     <span>SELECT YOUR SEASONS</span>
                     <span>
-                      {t("4 \u5468 /")}{" "}
+                      {t("4 周 /")}{" "}
                       {visibleWeeks.reduce((n, w) => n + w.events.length, 0)}{" "}
-                      {t("\u9879\u6311\u6218")}
+                      {t("项挑战")}
                     </span>
                   </div>
                   <div className="weeks-grid">
@@ -526,7 +554,7 @@ export default function App() {
                         week={w}
                         selected={selected.includes(w.key)}
                         toggle={() => toggle(w.key)}
-                        disabled={busy}
+                        disabled={busy || !!summary?.seasonError}
                       />
                     ))}
                   </div>
@@ -535,12 +563,12 @@ export default function App() {
                     <div>
                       <strong>
                         {t(
-                          "\u6BCF\u6B21\u4FEE\u6539\uFF0C\u5148\u7559\u4E00\u4EFD\u9000\u8DEF\u3002",
+                          "每次修改，先留一份退路。",
                         )}
                       </strong>
                       <p>
                         {t(
-                          "\u81EA\u52A8\u5907\u4EFD\u539F\u5B58\u6863\uFF0C\u5E76\u5728\u5199\u56DE\u524D\u5B8C\u6210\u52A0\u5BC6\u56DE\u8BFB\u6821\u9A8C\u3002",
+                          "自动备份原存档，并在写回前完成加密回读校验。",
                         )}
                       </p>
                     </div>
@@ -550,26 +578,26 @@ export default function App() {
               </section>
               <div className="detail-strip">
                 <div>
-                  <b>{t("\u6574\u5468\u6311\u6218")}</b>
+                  <b>{t("整周挑战")}</b>
                   <span>
                     {t(
-                      "\u6BCF\u65E5 \xB7 \u6BCF\u5468 \xB7 \u9526\u6807\u8D5B \xB7 \u7279\u6280 \xB7 \u7167\u7247 \xB7 \u66F4\u591A",
+                      "每日 · 每周 · 锦标赛 · 特技 · 照片 · 更多",
                     )}
                   </span>
                 </div>
                 <div>
-                  <b>{t("\u7CBE\u786E\u9009\u62E9")}</b>
+                  <b>{t("精确选择")}</b>
                   <span>
                     {t(
-                      "\u53EA\u4FEE\u6539\u6240\u9009\u5468\uFF0C\u4FDD\u7559\u5176\u4ED6\u5B63\u8282\u7684\u8FDB\u5EA6",
+                      "只修改所选周，保留其他季节的进度",
                     )}
                   </span>
                 </div>
                 <div>
-                  <b>{t("\u5DF2\u77E5\u5185\u5BB9")}</b>
+                  <b>{t("已知内容")}</b>
                   <span>
                     {t(
-                      "\u5F53\u524D\u76EE\u5F55\u8986\u76D6 S1\u2013S5\uFF0C\u5171 20 \u5468",
+                      '当前目录：{0} 个系列赛，共 {1} 周', [seriesIds.length,weeks.length],
                     )}
                   </span>
                 </div>
@@ -583,19 +611,19 @@ export default function App() {
                   <div className="eyebrow">EVERY JOURNEY HAS A RETURN.</div>
                   <h1>
                     {t(
-                      "\u653E\u5FC3\u51FA\u53D1\uFF0C\u968F\u65F6\u56DE\u6765",
+                      "放心出发，随时回来",
                     )}
                     <span>{t("。")}</span>
                   </h1>
                   <p>
                     {t(
-                      "\u6BCF\u6B21\u5199\u5165\u4E0E\u6062\u590D\u4E4B\u524D\uFF0C\u81EA\u52A8\u4FDD\u5B58\u5B8C\u6574\u539F\u6587\u4EF6\u3002",
+                      "每次写入与恢复之前，自动保存完整原文件。",
                     )}
                   </p>
                 </div>
                 <button className="small-btn" onClick={() => api.openBackups()}>
                   <FolderOpen size={17} />
-                  {t("\u6253\u5F00\u5907\u4EFD\u76EE\u5F55")}
+                  {t("打开备份目录")}
                 </button>
               </section>
               <div className="backup-banner">
@@ -603,18 +631,18 @@ export default function App() {
                 <div>
                   <h3>
                     {t(
-                      "\u4F60\u7684\u6BCF\u4E00\u6B21\u4FEE\u6539\uFF0C\u90FD\u6709\u8BB0\u5F55\u3002",
+                      "你的每一次修改，都有记录。",
                     )}
                   </h3>
                   <p>
                     {t(
-                      "\u5907\u4EFD\u4E0E\u5E94\u7528\u5206\u5F00\u4FDD\u5B58\uFF0C\u5173\u95ED\u7A0B\u5E8F\u540E\u4ECD\u7136\u4FDD\u7559\u3002",
+                      "备份与应用分开保存，关闭程序后仍然保留。",
                     )}
                   </p>
                 </div>
                 <span>
                   {backups.length}
-                  <small>{t("\u4EFD\u6062\u590D\u70B9")}</small>
+                  <small>{t("份恢复点")}</small>
                 </span>
               </div>
               {backups.length ? (
@@ -627,14 +655,14 @@ export default function App() {
                       <div>
                         <h3>
                           {b.kind === "restore"
-                            ? t("\u6062\u590D\u524D\u5FEB\u7167")
-                            : t("\u4FEE\u6539\u524D\u5907\u4EFD")}{" "}
+                            ? t("恢复前快照")
+                            : t("修改前备份")}{" "}
                           <em>
                             {b.status === "complete"
-                              ? t("\u5B8C\u6574")
+                              ? t("完整")
                               : b.status === "rolled-back"
-                                ? t("\u5DF2\u56DE\u6EDA")
-                                : t("\u4E2D\u65AD\u53EF\u6062\u590D")}
+                                ? t("已回滚")
+                                : t("中断可恢复")}
                           </em>
                         </h3>
                         <time>
@@ -649,7 +677,7 @@ export default function App() {
                         disabled={busy}
                         onClick={() => setRestoreTarget(b)}
                       >
-                        {t("\u6062\u590D\u6B64\u7248\u672C")}
+                        {t("恢复此版本")}
                         <ArrowLeft size={16} />
                       </button>
                     </article>
@@ -660,12 +688,12 @@ export default function App() {
                   <History size={46} />
                   <h3>
                     {t(
-                      "\u7B2C\u4E00\u4EFD\u5907\u4EFD\uFF0C\u968F\u7B2C\u4E00\u6B21\u4FEE\u6539\u4E00\u8D77\u5230\u6765\u3002",
+                      "第一份备份，随第一次修改一起到来。",
                     )}
                   </h3>
                   <p>
                     {t(
-                      "\u5E94\u7528\u4F1A\u5728\u5199\u56DE\u524D\u81EA\u52A8\u4FDD\u5B58\uFF0C\u5C4A\u65F6\u53EF\u5728\u8FD9\u91CC\u6062\u590D\u3002",
+                      "应用会在写回前自动保存，届时可在这里恢复。",
                     )}
                   </p>
                 </div>
@@ -679,37 +707,37 @@ export default function App() {
             <div>
               <strong>
                 {summary
-                  ? t("\u672C\u5730\u5B58\u6863\u5DF2\u8FDE\u63A5")
-                  : t("\u7B49\u5F85\u8FDE\u63A5\u5B58\u6863")}
+                  ? t("本地存档已连接")
+                  : t("等待连接存档")}
               </strong>
               <small title={summary?.file}>
                 {summary
                   ? summary.file
-                  : t("\u9009\u62E9 C_ProfileData \u5F00\u59CB")}
+                  : t("选择 C_ProfileData 开始")}
               </small>
             </div>
           </div>
           <div className="selection-summary">
-            <b>{selected.length.toString().padStart(2, "0")}</b>
+            <b>{(selected.length + queuedCars).toString().padStart(2, "0")}</b>
             <span>
-              {t("\u5468\u5DF2\u9009\u62E9")}
-              <small>{selectedPoints} PTS</small>
+              {t('已选择')}
+              <small>{t('{0} 周 · {1} 辆',[selected.length,queuedCars])}</small>
             </span>
           </div>
           {summary ? (
             <button
               className="apply-button"
               onClick={apply}
-              disabled={busy || !selected.length}
+              disabled={busy || (!selected.length && !queuedCars) || overCapacity || (!!selected.length && !!summary?.seasonError) || (!!queuedCars && !!summary?.garageError)}
             >
               {busy ? (
                 <LoaderCircle className="spin" size={20} />
               ) : (
                 <CheckCheck size={20} />
               )}{" "}
-              {busy
-                ? t("\u6B63\u5728\u5904\u7406")
-                : t("\u5907\u4EFD\u5E76\u5E94\u7528\u4FEE\u6539")}{" "}
+              {overCapacity ? t('超出车库容量') : busy
+                ? t("正在处理")
+                : t("备份并应用修改")}{" "}
               <ArrowUpRight size={20} />
             </button>
           ) : (
@@ -719,7 +747,7 @@ export default function App() {
               disabled={busy}
             >
               <FolderOpen size={19} />
-              {t("\u8FDE\u63A5\u5B58\u6863")}
+              {t("连接存档")}
               <ArrowUpRight size={20} />
             </button>
           )}
@@ -728,7 +756,7 @@ export default function App() {
           <div className="working" role="status">
             <LoaderCircle className="spin" size={18} />
             <span>
-              {t(progress.message || t("\u6B63\u5728\u5904\u7406\u2026"))}
+              {t(progress.message || t("正在处理…"))}
             </span>
             <b>{progress.percent}%</b>
             <i
@@ -740,14 +768,14 @@ export default function App() {
         ) : null}
         {connect ? (
           <Modal
-            title={t("\u8FDE\u63A5\u4F60\u7684\u5B58\u6863")}
+            title={t("连接你的存档")}
             close={() => {
               if (!busy) setConnect(false);
             }}
           >
             <p className="modal-lead">
               {t(
-                "\u5DF2\u81EA\u52A8\u5BFB\u627E\u672C\u673A FH6 \u5B58\u6863\uFF0C\u4E5F\u53EF\u4EE5\u624B\u52A8\u9009\u62E9\u6587\u4EF6\u3002",
+                "已自动寻找本机 FH6 存档，也可以手动选择文件。",
               )}
             </p>
             {error ? (
@@ -766,7 +794,7 @@ export default function App() {
                   <HardDrive size={20} />
                   <span>
                     <b>
-                      {t("\u73A9\u5BB6")}
+                      {t("玩家")}
                       {s.account.slice(-6)}
                     </b>
                     <small>{s.path}</small>
@@ -782,7 +810,7 @@ export default function App() {
               ))}
             </div>
             <label className="field-label" htmlFor="save-file">
-              {t("\u5B58\u6863\u6587\u4EF6")}
+              {t("存档文件")}
             </label>
             <div className="file-input">
               <input
@@ -790,22 +818,22 @@ export default function App() {
                 value={file}
                 onChange={(e) => setFile(e.target.value)}
                 disabled={busy}
-                placeholder={t("\u9009\u62E9 C_ProfileData")}
+                placeholder={t("选择 C_ProfileData")}
               />
               <button onClick={choose} disabled={busy}>
                 <FolderOpen size={18} />
-                {t("\u6D4F\u89C8")}
+                {t("浏览")}
               </button>
             </div>
             <div className="service-note">
               <Info size={17} />
               <p>
                 {t(
-                  "\u52A0\u89E3\u5BC6\u4F7F\u7528 ForzaCryptoTool \u7684\u5728\u7EBF\u670D\u52A1\uFF0C\u4F1A\u5C06\u6240\u9009\u5B58\u6863\u53D1\u9001\u81F3",
+                  "加解密使用 ForzaCryptoTool 的在线服务，会将所选存档发送至",
                 )}{" "}
                 <b>forzamods.dev</b>
                 {t(
-                  "\u3002\u4FEE\u6539\u8BA1\u7B97\u548C\u5907\u4EFD\u5728\u672C\u673A\u5B8C\u6210\uFF1B\u8BF7\u5148\u9000\u51FA\u6E38\u620F\u3002",
+                  "。修改计算和备份在本机完成；请先退出游戏。",
                 )}
               </p>
             </div>
@@ -819,78 +847,78 @@ export default function App() {
               ) : (
                 <HardDrive size={18} />
               )}
-              {t("\u8FDE\u63A5\u5E76\u89E3\u5BC6")}
+              {t("连接并解密")}
             </button>
           </Modal>
         ) : null}
         {restoreTarget ? (
           <Modal
-            title={t("\u6062\u590D\u8FD9\u4E2A\u7248\u672C")}
+            title={t("恢复这个版本")}
             close={() => setRestoreTarget(null)}
           >
             <p className="modal-lead">
-              {t("\u5C06\u6062\u590D\u81F3")}
+              {t("将恢复至")}
               {new Date(restoreTarget.created).toLocaleString(
                 locale === "zh" ? "zh-CN" : "en-US",
               )}{" "}
-              {t("\u4FEE\u6539\u524D\u7684\u5B58\u6863\u3002")}
+              {t("修改前的存档。")}
             </p>
             <p className="restore-path">{restoreTarget.targets[0]}</p>
             <div className="service-note">
               <ShieldCheck size={20} />
               <p>
                 {t(
-                  "\u5F53\u524D\u7248\u672C\u4F1A\u5148\u4FDD\u5B58\u4E3A\u65B0\u7684\u5907\u4EFD\uFF0C\u4E4B\u540E\u4ECD\u53EF\u6062\u590D\u3002",
+                  "当前版本会先保存为新的备份，之后仍可恢复。",
                 )}
               </p>
             </div>
             <button className="primary wide" onClick={restore}>
-              {t("\u6062\u590D\u5B58\u6863")}
+              {t("恢复存档")}
             </button>
           </Modal>
         ) : null}
         {info ? (
           <Modal
-            title={t("\u5173\u4E8E\u5B58\u6863\u5DE5\u574A")}
+            title={t("关于存档工坊")}
             close={() => setInfo(false)}
           >
             <p className="modal-lead">
               {t(
-                "Horizon Festival Toolkit \xB7 \u975E\u5B98\u65B9\u672C\u5730\u5B58\u6863\u5DE5\u5177",
+                "Horizon Festival Toolkit · 非官方本地存档工具",
               )}
             </p>
             <ol className="help-steps">
               <li>
                 <b>
                   {t(
-                    "\u9000\u51FA\u6E38\u620F\u5E76\u8FDE\u63A5\u5B58\u6863\u3002",
+                    "退出游戏并连接存档。",
                   )}
                 </b>
                 <p>
                   {t(
-                    "\u52A0\u5BC6\u5B58\u6863\u901A\u8FC7 ForzaCryptoTool \u5728\u7EBF\u52A0\u89E3\u5BC6\u3002",
+                    "加密存档通过 ForzaCryptoTool 在线加解密。",
                   )}
                 </p>
               </li>
               <li>
                 <b>
-                  {t("\u9009\u62E9\u8D5B\u5B63\u6216\u67D0\u51E0\u5468\u3002")}
+                  {t("选择赛季或某几周。")}
                 </b>
                 <p>
                   {t(
-                    "\u5B63\u8282\u8D5B\u76EE\u5F55\u8986\u76D6 S1\u2013S5\uFF0C\u5171 20 \u5468\uFF1B\u672C\u7248\u672C\u53EA\u63D0\u4F9B\u5B63\u8282\u8D5B\u7F16\u8F91\uFF0C\u4E0D\u5305\u542B\u52A0\u8F66\u529F\u80FD\u3002",
+                    '搜索车辆并添加指定数量，或补齐全车。更新中心可读取游戏资源或导入独立内容包。',
                   )}
                 </p>
               </li>
               <li>
                 <b>
                   {t(
-                    "\u70B9\u51FB\u201C\u5907\u4EFD\u5E76\u5E94\u7528\u4FEE\u6539\u201D\u3002",
+                    "点击“备份并应用修改”。",
                   )}
                 </b>
                 <p>
                   {t(
-                    "\u81EA\u52A8\u5907\u4EFD\uFF0C\u9A8C\u8BC1\u4FEE\u6539\u5E76\u52A0\u5BC6\u56DE\u8BFB\uFF0C\u7136\u540E\u5199\u56DE\u539F\u8DEF\u5F84\u3002",
+                    "自动备份，验证修改并加密回读，然后写回原路径。",
                   )}
                 </p>
               </li>
@@ -899,13 +927,13 @@ export default function App() {
               <Info size={20} />
               <p>
                 {t(
-                  "\u672C\u5DE5\u5177\u9A8C\u8BC1\u5B58\u6863\u6570\u636E\u7ED3\u6784\u4E0E\u5B57\u6BB5\u3002\u5C1A\u672A\u9A8C\u8BC1\u6E38\u620F\u5B9E\u9645\u8BFB\u6863\u3001\u6240\u6709\u5361\u7247\u663E\u793A\u548C\u72EC\u7ACB\u6311\u6218\u5B50\u72B6\u6001\uFF1B\u4E0D\u4F1A\u989D\u5916\u53D1\u653E\u6311\u6218\u5956\u52B1\u3002\u4E0D\u540C\u7248\u672C\u6216\u7EBF\u4E0A\u670D\u52A1\u53EF\u80FD\u91CD\u65B0\u8BA1\u7B97\u8FDB\u5EA6\u3002",
+                  "本工具验证存档数据结构与字段。尚未验证游戏实际读档、所有卡片显示和独立挑战子状态；不会额外发放挑战奖励。不同版本或线上服务可能重新计算进度。",
                 )}
               </p>
             </div>
             <p className="credits">
               {t(
-                "\u89C6\u89C9\u53C2\u8003 FH6 \u83DC\u5355\uFF1B\u72EC\u7ACB\u5DE5\u5177\uFF0C\u4E0E Microsoft\u3001Xbox\u3001Playground Games \u65E0\u96B6\u5C5E\u5173\u7CFB\u3002",
+                "视觉参考 FH6 菜单；独立工具，与 Microsoft、Xbox、Playground Games 无隶属关系。",
               )}
             </p>
           </Modal>

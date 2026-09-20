@@ -10,7 +10,7 @@ let browser,child;
  const qa=await fs.mkdtemp(path.join(root,'qa/portable-'));
  const server=net.createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const port=server.address().port;await new Promise(r=>server.close(r));
  const env={...process.env,FESTIVAL_TEST_DATA:path.join(qa,'user-data'),FESTIVAL_TEST_SCOPE:qa,FESTIVAL_TEST_HIDDEN:'1'};delete env.ELECTRON_RUN_AS_NODE;
- child=spawn(path.join(root,'release/Horizon-Festival-Toolkit-0.1.1-Portable.exe'),[`--remote-debugging-port=${port}`,'--remote-debugging-address=127.0.0.1'],{env,windowsHide:true,stdio:'ignore'});
+ child=spawn(path.join(root,`release/Horizon-Festival-Toolkit-${require('../package.json').version}-Portable.exe`),[`--remote-debugging-port=${port}`,'--remote-debugging-address=127.0.0.1'],{env,windowsHide:true,stdio:'ignore'});
  let ready=false;
  for(let i=0;i<60;i++){try{const r=await fetch(`http://127.0.0.1:${port}/json/version`);if(r.ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,500));}
  if(!ready)throw Error('Portable renderer did not start in 30 seconds');

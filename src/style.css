@@ -14,6 +14,7 @@
   --ink: #212321;
   --muted: #767972;
 }
+/* V0.2: retain the festival palette; soften the workspace and add motion. */
 * {
   box-sizing: border-box;
 }

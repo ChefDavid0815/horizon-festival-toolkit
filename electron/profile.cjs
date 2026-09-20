@@ -123,7 +123,7 @@ function replaceDatabase(b, payload) {
 }
 function readEvents(r) {
   const series = [];
-  for (let a = r.count(64); a; a--) {
+  for (let a = r.count(512); a; a--) {
     const id = r.u32();
     assert(id < 10000);
     const weeks = [];
@@ -200,7 +200,7 @@ function encodeEvents(series) {
   }
   return Buffer.concat(chunks);
 }
-function festival(b) {
+function festival(b, catalog = seasons) {
   const state = parse(b).states.find((s) => s.type === "FestivalPassSaveState");
   assert(state, "未找到季节赛状态");
   if (b.readUInt32LE(state.start) !== 4 || state.schema !== 0x6efc7e34)
@@ -212,7 +212,7 @@ function festival(b) {
     offset++
   ) {
     const n = b.readUInt32LE(offset);
-    if (n < 2 || n > 32) continue;
+    if (n < 1 || n > 512) continue;
     try {
       const r = new Reader(b, offset, state.end);
       r.u32();
@@ -221,11 +221,11 @@ function festival(b) {
         const id = r.u32(),
           pos = r.p,
           value = r.u32();
-        assert(id < 1000 && value < 10000);
+        assert(id < 10000 && value < 10000);
         totals.push({ id, pos, value });
       }
       assert(new Set(totals.map((t) => t.id)).size === n);
-      assert.equal(r.count(32), n);
+      assert.equal(r.count(512), n);
       const weekPoints = [];
       for (let i = 0; i < n; i++) {
         const id = r.u32();
@@ -238,7 +238,7 @@ function festival(b) {
           weekPoints.push({ id, week, pos, value });
         }
       }
-      assert.equal(r.count(32), n);
+      assert.equal(r.count(512), n);
       const max = [];
       for (let i = 0; i < n; i++) {
         const id = r.u32();
@@ -258,12 +258,13 @@ function festival(b) {
       assert.equal(events.length, n);
       assert(events.some((s) => s.weeks.some((w) => w.types.length > 3)));
       assert(b.subarray(eventStart, r.p).equals(encodeEvents(events)));
-      const known = max.filter((m) => m.id >= 1 && m.id <= 5);
+      assert.deepEqual(events.map(s=>s.id).sort((a,b)=>a-b), totals.map(s=>s.id).sort((a,b)=>a-b));
+      const known = max.filter((m) => catalog.weeks.filter(w=>w.series===m.id).length === 4);
       assert(known.length);
       for (const m of known)
         assert.equal(
           m.points,
-          seasons.weeks
+          catalog.weeks
             .filter((w) => w.series === m.id)
             .reduce((a, w) => a + w.maxPoints, 0),
         );
@@ -293,9 +294,9 @@ function isDone(e) {
       : e.status === 1 && e.progress === 1)
   );
 }
-function inspectSeasons(b) {
-  const f = festival(b);
-  return seasons.weeks.map((w) => {
+function inspectSeasons(b, catalog = seasons) {
+  const f = festival(b, catalog);
+  return catalog.weeks.map((w) => {
     const stored = weekRecords(f, w.series, w.week);
     const completed = w.events.filter((e) =>
       isDone(
@@ -317,7 +318,7 @@ function inspectSeasons(b) {
     };
   });
 }
-function patchStats(b, f, touched) {
+function patchStats(b, f, touched, catalog = seasons) {
   const s = parse(b).states.find((s) => s.type === "Stats");
   assert(s);
   const out = Buffer.from(b);
@@ -371,7 +372,7 @@ function patchStats(b, f, touched) {
           const count = f.weekPoints.filter(
             (p) =>
               p.id === id &&
-              seasons.weeks.some(
+              catalog.weeks.some(
                 (w) =>
                   w.series === id &&
                   w.week === p.week &&
@@ -385,15 +386,15 @@ function patchStats(b, f, touched) {
   set(find("Freeroam/FestivalPass/CompletedSeriesCount"), full);
   return out;
 }
-function patchSeasons(input, keys) {
+function patchSeasons(input, keys, seasonCatalog = seasons) {
   assert(
-    Array.isArray(keys) && keys.length && keys.length <= 20,
+    Array.isArray(keys) && keys.length && keys.length <= 2048,
     "请选择至少一周",
   );
   const chosen = new Set(keys);
   assert.equal(chosen.size, keys.length);
-  const before = festival(input),
-    catalog = inspectSeasons(input);
+  const before = festival(input, seasonCatalog),
+    catalog = inspectSeasons(input, seasonCatalog);
   for (const key of keys)
     assert(
       catalog.some((w) => w.key === key && w.available),
@@ -443,17 +444,17 @@ function patchSeasons(input, keys) {
       .reduce((n, p) => n + b.readUInt32LE(p.pos), 0);
     b.writeUInt32LE(sum, before.totals.find((t) => t.id === id).pos);
   }
-  b = patchStats(b, before, touched);
+  b = patchStats(b, before, touched, seasonCatalog);
   const payload = Buffer.concat([
     b.subarray(before.state.start, before.eventStart),
     encodeEvents(before.events),
     b.subarray(before.eventEnd, before.state.end),
   ]);
   b = replaceState(b, "FestivalPassSaveState", payload);
-  const after = inspectSeasons(b);
+  const after = inspectSeasons(b, seasonCatalog);
   assert(after.filter((w) => chosen.has(w.key)).every((w) => w.complete));
-  const initial = festival(input),
-    final = festival(b);
+  const initial = festival(input, seasonCatalog),
+    final = festival(b, seasonCatalog);
   for (const s of initial.events)
     for (const w of s.weeks)
       if (!chosen.has(`${s.id}:${w.week}`))
@@ -481,4 +482,5 @@ module.exports = {
   sha,
   fnv,
   seasons,
+  encodeEvents,
 };

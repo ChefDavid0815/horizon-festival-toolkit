@@ -1,74 +1,81 @@
-<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover-v0.1.1.svg" width="100%" alt="Festival Toolkit — a mint, sky blue and pink pass for four seasons" /></a>
+<img src="docs/assets/cover-v0.2.0.svg" width="100%" alt="Horizon Festival Toolkit 0.2.0 — mint, blue and pink festival pass. 647 models, an updatable catalogue and a garage." />
 
 <p align="center"><b>English</b> · <a href="README.zh-CN.md">简体中文</a></p>
-<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.1.1"><b>WINDOWS DOWNLOAD ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">THE EXHIBITION ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/post.html?article=festival-toolkit">BUILD JOURNAL ↗</a></p>
 
-### `01` &nbsp; Every week. A little brighter.
 
-**Horizon Festival Toolkit** is a Windows save workshop by **ChefZC**, built around FH6 seasonal records. Inspect a playlist, choose the weeks to work on, and keep a way back before writing changes.
+<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.2.0"><b>DOWNLOAD 0.2.0 ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#festival-history">VERSION JOURNAL ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">CHANGELOG ↗</a></p>
 
-The exhibition pairs mint green, sky blue and festival pink with the application's condensed type, angled labels and seasonal cards. Below is the actual application, with no save connected.
+# Horizon Festival Toolkit · V0.2.0
 
-<img src="docs/assets/workspace-en.png" width="100%" alt="Actual Festival Toolkit 0.1.1 Windows interface, English language, disconnected state" />
+A Windows workshop for FH6 playlist progress, car inventory and independently updatable content. Keeps the festival's lime, pink and pale blue palette with a refreshed interface, animated cards and reduced-motion support.
 
-| 05 / Series | 20 / Weeks | 02 / Languages |
-| :--- | :--- | :--- |
-| Current catalogue: S1–S5 | Select a week, a series, or all recognised records | Chinese, English and system preference |
+| Playlist | Garage | Content | Language |
+| --- | --- | --- | --- |
+| Dynamic series and week selection | 647 bundled models | Local game sync + offline packs | English / 简体中文 / System |
 
-### `02` &nbsp; Inside the workshop
+## What you can do
 
-- Inspect recognised seasonal points and completion records.
-- Apply changes to selected weeks, a series or every recognised week.
-- Back up originals before writing. Handle an existing `C_ProfileData_SCopy` and restore each original file separately.
-- Validate the decrypt/readback round trip before encrypted-save writes; verify backup integrity before restoration.
-- Remember a manual language choice. Launching never automatically connects, modifies or restores saves.
-- **No car-adding feature.** Seasonal modifications preserve the garage database bytes.
+- Use each series' actual in-game cover in the series poster. Covers are read from local texture archives and cached; the four season cards keep their existing styling.
 
-### `03` &nbsp; Before connecting a save
+- Search cars by model, make, year or ID; common Chinese make aliases work too.
+- Add 1–20 copies of a selected model, including cars you already own, or add one of every missing catalog model.
+- Select a week, a series or all recognized playlist records. Apply car and playlist changes together.
+- Sync the catalog from local game resources. Optional checks run on launch and every 30 minutes while the app is open. Supported new content does not require a toolkit reinstall.
+- Import/export independent JSON content packs and retain historical definitions.
+- Keep automatic backups, verify original/SCopy independently on restore, and validate encrypted-save round trips before write-back.
 
-Current version: **0.1.1 / prerelease**, Windows x64 installer and portable app. Binaries are unsigned. Exit the game, choose `C_ProfileData`, then select the weeks. Only the explicit backup-and-apply action writes changes. Recovery points are available in the backup view; uninstalling preserves the app's backups.
+The app starts disconnected and never edits a save automatically. **Back up & apply** writes the selected changes. The garage writer preserves existing cars and checks unrelated database tables and profile states.
 
-**Data flow:** encrypted saves are sent to `forzamods.dev` by the bundled [ForzaCryptoTool](https://github.com/DVS-code/Forza-Crypto-Tool). The connection dialog explains this before use. Encrypted operations require network access and can fail if the upstream service or protocol changes. No account passwords or private API keys are embedded.
+## Run or build
 
-**Compatibility:** the catalogue comes from FH6 `2.440.853.0` resources. The parser accepts recognised FestivalPass v4 / schema `0x6efc7e34` only, and stops on unknown layouts. In-game loading, fully lit cards, independent challenge substates, reward delivery and online synchronisation remain unverified. Successful field writes do not establish every in-game effect.
+**[Get the Windows x64 release](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.2.0)** — installer, portable app and SHA-256 checksums:
 
-This is a **native Windows desktop utility**. `npm run dev` starts the renderer development environment; save operations require Electron's native file bridge. There is no independently functional browser edition.
+- [Horizon-Festival-Toolkit-0.2.0-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/Horizon-Festival-Toolkit-0.2.0-Setup.exe)
+- [Horizon-Festival-Toolkit-0.2.0-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/Horizon-Festival-Toolkit-0.2.0-Portable.exe)
+- [SHA256SUMS-0.2.0.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/SHA256SUMS-0.2.0.txt)
 
-### `04` &nbsp; From source
-
-Requires Node.js, npm and Windows. The repository includes application source, catalogue data, design assets and build configuration. Dependencies, private save fixtures and installer binaries stay outside Git history.
+These binaries are unsigned. Start from source with Node.js/npm:
 
 ```powershell
-git clone https://github.com/ChefDavid0815/horizon-festival-toolkit.git
-cd horizon-festival-toolkit
 npm ci
 npm run build
 npm start
 ```
 
-For encrypted-save operations and complete Windows packaging, first install and verify the upstream executable described in [tools/README.md](tools/README.md). Then `npm run package` creates NSIS and portable builds.
+Install and verify the upstream dependency as described in [tools/README.md](tools/README.md), then run `npm run package`. `npm run dev` provides only the renderer development environment; save operations require Electron.
 
-Tests that need no private save fixture:
 
-```powershell
-New-Item -ItemType Directory -Force qa
-node --test tests/service.test.cjs tests/settings.test.cjs
-```
+## A look inside
 
-Full `npm test` and desktop QA require a developer-provided decrypted fixture at `qa/cli-roundtrip.bin`. That private file is not published. Tests use isolated temporary directories, not formal game saves. Publication validation: **build passed, 12/12 core tests passed**. Existing desktop verification covered installed/portable workflows and language persistence; those UI flows were not rerun during publication. See [verification notes](docs/VERIFICATION.md).
+Actual Windows 0.2.0 captures, Chinese interface, disconnected. The game poster belongs to its respective rights holders.
 
-| Location | Purpose |
-| :--- | :--- |
-| `src/` | React UI, bilingual copy and Barlow Condensed type |
-| `electron/` | Native IPC, save parser, transactional backup/recovery, language preferences |
-| `data/` | Resource catalogues and third-party licences; no player saves |
-| `scripts/`, `tests/` | Build tools and isolated verification |
-| `docs/assets/` | Original exhibition cover and disconnected app screenshots |
+<img src="docs/assets/workspace-v0.2.png" width="100%" alt="Festival Toolkit 0.2.0 — playlist and four seasonal cards" />
 
-### `05` &nbsp; Credits & editions
+<details>
+<summary><b>Open the garage / 647 models</b></summary>
 
-[Changelog](CHANGELOG.md) · [Third-party notices](THIRD_PARTY.md) · [ChefZC](https://github.com/ChefDavid0815)
+<img src="docs/assets/garage-v0.2.png" width="100%" alt="Festival Toolkit 0.2.0 — searchable garage, disconnected" />
 
-An unofficial personal project, not affiliated with Microsoft, Xbox or Playground Games. Game names, photographs and resources belong to their respective owners. Third-party components keep their own licences; this repository grants no additional rights to them. Release downloads include SHA-256 checksums.
+</details>
+
+## Content updates
+
+Choose the FH6 installation folder in **Content updates**. The reader parses `media/ObjectModelGame.zip` directly and builds vehicle configurations from `media/Stripped/gamedbRC.slt`. A changed encrypted vehicle database requires optional online decryption or an imported content pack. Content sync only uses game resources, never player saves.
+
+New series must also exist in the connected save. Open the new playlist in the game first, exit, then reconnect. Unknown event types, encryption or save schemas still require adapter work; the app stops unsupported edits instead of inventing data.
+
+Read the [V0.2 guide](docs/RELEASE-0.2.0.md) and [content pack format](docs/CONTENT-PACKS.md).
+
+## Verification and boundaries
+
+`npm test` covers profile, garage, catalog, backups and preferences. Full fixture tests and `npm run verify:desktop` require the private `qa/cli-roundtrip.bin`; no private save is distributed. [Verification details](docs/VERIFICATION.md) distinguish local resource checks, synthetic future-series checks and desktop fixture writes from real gameplay.
+
+Encrypted **player-save** operations use the bundled [ForzaCryptoTool](https://github.com/DVS-code/Forza-Crypto-Tool) and upload the selected save to `forzamods.dev`. The connection dialog explains this. Optional encrypted **game-resource** sync sends `gamedbRC.slt` to the same service. No personal credentials are bundled.
+
+In-game loading, driving, rewards, independent challenge substates, online synchronization and future schemas are not verified. Inventory changes do not grant ownership of downloadable game content. The editor currently recognizes FestivalPass v4 / schema `0x6efc7e34` and enforces its own 2,000-car capacity boundary.
+
+[Changelog](CHANGELOG.md) · [Sources and third-party notices](THIRD_PARTY.md)
+
+Independent unofficial project. Not affiliated with Microsoft, Xbox or Playground Games. Game content remains the property of its owners.
 
 **YOUR FESTIVAL. YOUR WAY.**

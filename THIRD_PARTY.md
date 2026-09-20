@@ -4,6 +4,12 @@ This is a personal local utility. No license to redistribute game assets or thir
 
 - Electron: https://github.com/electron/electron — MIT and included Chromium notices.
 - React: https://github.com/facebook/react — MIT.
+- sql.js: https://github.com/sql-js/sql.js — MIT; bundled SQLite/WebAssembly database engine.
+- adm-zip: https://github.com/cthackers/adm-zip — MIT; local resource archive reader.
+- fast-xml-parser: https://github.com/NaturalIntelligence/fast-xml-parser — MIT; plain XML resource reader.
+- tex-decoder: https://github.com/hearhellacopters/tex-decoder — MIT; BCn texture decoding.
+- pngjs: https://github.com/pngjs/pngjs — MIT; PNG encoding for the local artwork cache.
+- Series covers are decoded locally from the user's installed `SeriesN.zip` archives (`SerieshistoryPoster.swatchbin`). They are game-owned assets, cached in user data; standalone decoded cover files are not bundled in the application source or executable. UI screenshots may show them. Their provenance is recorded per image.
 - Lucide icons: https://github.com/lucide-icons/lucide — ISC.
 - Barlow Condensed font: https://github.com/jpt/barlow — SIL Open Font License 1.1. Font subset supplied by Fontsource; see `data/OFL.txt`.
 - ForzaCryptoTool v3.2: https://github.com/DVS-code/Forza-Crypto-Tool — unmodified official release executable. SHA-256: `4b08e2f42e581281c0409009f8ea53f828a0a23e6633d0b79cdc7585ca705212`. The upstream project controls its executable, terms and online service. No proprietary tool code or private credentials are embedded in this application's source. Review upstream terms before redistributing a package containing this executable.
