@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const path = require("node:path");
 const { Service } = require("./service.cjs");
 const { Preferences } = require("./settings.cjs");
+const { ReleaseChecker } = require('./releases.cjs');
 let win, service;
 if (process.env.FESTIVAL_TEST_DATA)
   app.setPath("userData", process.env.FESTIVAL_TEST_DATA);
@@ -23,6 +24,8 @@ app.whenReady().then(async () => {
     () => app.getPreferredSystemLanguages()[0] || app.getLocale(),
   );
   await preferences.init();
+  const releases = new ReleaseChecker({dataDir:app.getPath('userData'),version:app.getVersion()});
+  await releases.init();
   win = new BrowserWindow({
     width: 1440,
     height: 940,
@@ -65,7 +68,11 @@ app.whenReady().then(async () => {
     version: app.getVersion(),
     dataDir: app.getPath("userData"),
     language: preferences.current(),
+    releases: releases.view(),
+    progressionCatalog: require('./progression.cjs').catalog,
   }));
+  handle('checkRelease', ()=>releases.check({force:true}));
+  handle('openRelease', ()=>shell.openExternal(releases.openUrl()));
   handle("language", (value) => preferences.setLanguage(value));
   handle('contentSettings', value=>service.configureSync(value));
   handle('syncCatalog', ()=>service.syncCatalog());
@@ -91,6 +98,10 @@ app.whenReady().then(async () => {
     shell.openPath(path.join(app.getPath("userData"), "backups")),
   );
   await win.loadFile(path.join(root, "dist/index.html"));
+  const checkDaily = async()=>{try{const result=await releases.check();if(!win?.isDestroyed())win.webContents.send('releaseChecked',result);}catch{if(!win?.isDestroyed())win.webContents.send('releaseChecked',{...releases.view(),status:'offline',notify:false});}};
+  const releaseStart=setTimeout(checkDaily,2500);releaseStart.unref();
+  const releaseTimer=setInterval(checkDaily,60*60*1000);releaseTimer.unref();
+  win.on('closed',()=>{clearTimeout(releaseStart);clearInterval(releaseTimer);});
   const autoSync=async()=>{if(service.syncSettings.autoSync && service.syncSettings.gamePath && !service.busy){try{const result=await service.syncCatalog();if(!result.unchanged||result.carsPending)win?.webContents.send('contentUpdated',{ok:true,...result});}catch(error){win?.webContents.send('contentUpdated',{ok:false,error:error.message});}}};
   setTimeout(autoSync,2000).unref();
   const timer=setInterval(autoSync,30*60*1000);timer.unref();

@@ -5,6 +5,7 @@ const fs = require("node:fs/promises"),
   { randomUUID } = require("node:crypto");
 const profile = require("./profile.cjs");
 const garage = require('./garage.cjs');
+const progression = require('./progression.cjs');
 const { CatalogStore, digest } = require('./catalog.cjs');
 const { readResources } = require('./resources.cjs');
 const { ArtworkStore } = require('./artwork.cjs');
@@ -73,8 +74,9 @@ class Service {
     let weeks=[],carSummary=null,seasonError=null,garageError=null;
     try{weeks=profile.inspectSeasons(plain,this.catalogs.seasons);}catch(e){seasonError=e.message;}
     try{carSummary=await garage.inspectGarage(plain,this.catalogs.cars);}catch(e){garageError=e.message;}
-    if(seasonError&&garageError)throw Error(seasonError+' / '+garageError);
-    return {weeks,garage:carSummary,seasonError,garageError};
+    const journey=progression.inspectProgression(plain);
+    if(seasonError&&garageError&&journey.collectionError&&journey.wristbandError)throw Error(seasonError+' / '+garageError);
+    return {weeks,garage:carSummary,seasonError,garageError,journey};
   }
   async acceptCatalog(incoming,source) {
     const pack=this.catalogs.preview(incoming,source);
@@ -214,8 +216,8 @@ class Service {
   }
   summary() {
     if (!this.session) return null;
-    const { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid } = this.session;
-    return { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid };
+    const { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid, journey } = this.session;
+    return { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid, journey };
   }
   async backups() {
     await this.init();
@@ -318,12 +320,12 @@ class Service {
       if (
         !options ||
         typeof options !== "object" ||
-        Object.keys(options).some((k) => !['weeks','cars','allCars'].includes(k))
+        Object.keys(options).some((k) => !['weeks','cars','allCars','progressionItems','wristbands'].includes(k))
       )
         throw Error("修改请求无效");
-      const { weeks = [], cars = [], allCars = false } = options;
+      const { weeks = [], cars = [], allCars = false, progressionItems = [], wristbands = [] } = options;
       if (!this.session) throw Error("先连接一个存档");
-      if (!Array.isArray(weeks) || !Array.isArray(cars) || typeof allCars!=='boolean' || (!weeks.length && !cars.length && !allCars))
+      if (!Array.isArray(weeks) || !Array.isArray(cars) || !Array.isArray(progressionItems) || !Array.isArray(wristbands) || typeof allCars!=='boolean' || (!weeks.length && !cars.length && !allCars && !progressionItems.length && !wristbands.length))
         throw Error("请选择要修改的内容");
       await this.gameClosed();
       const s = this.session;
@@ -337,6 +339,7 @@ class Service {
         audit.push(p.audit);
       }
       if(cars.length || allCars){const p=await garage.patchGarage(b,{cars,allCars},this.catalogs.cars);b=p.buffer;audit.push(p.audit);}
+      if(progressionItems.length || wristbands.length){const p=progression.patchProgression(b,{items:progressionItems,wristbands});b=p.buffer;audit.push(p.audit);}
       const inspected = await this.inspect(b);
       const originalDb = profile.parse(s.plain).database,
         editedDb = profile.parse(b).database;

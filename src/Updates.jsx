@@ -1,13 +1,15 @@
 import {useEffect,useState} from 'react';
 import {RefreshCw, FolderOpen, Download, Upload, Radio, CheckCircle2, Database, ArrowUpRight} from 'lucide-react';
 import {useI18n} from './Language.jsx';
-export default function Updates({state,busy,api,action,accept,notice}){
+import ReleaseCenter from './ReleaseCenter.jsx';
+export default function Updates({state,busy,api,action,accept,notice,releases,setReleases,showRelease}){
   const {t,locale}=useI18n(),[config,setConfig]=useState(state?.syncSettings||{gamePath:'',autoSync:false,allowOnline:false}),[saved,setSaved]=useState(false);
   useEffect(()=>{if(state?.syncSettings)setConfig(state.syncSettings);},[state?.syncSettings]);
   const update=(key,value)=>{setConfig(c=>({...c,[key]:value}));setSaved(false);};
   const content=state?.content;
   async function save(){const result=await api.contentSettings(config);setConfig(result);setSaved(true);return result;}
   return <div className="view-enter">
+    <ReleaseCenter releases={releases} setReleases={setReleases} showRelease={showRelease} busy={busy} api={api} action={action}/>
     <section className="page-intro"><div><div className="eyebrow">KEEP THE FESTIVAL GOING.</div><h1>{t('新内容，不必等新版本')}<span>{t('。')}</span></h1><p>{t('从游戏资源读取新系列赛与新车，内容目录独立于客户端更新。')}</p></div><span className="edition-pill"><Radio size={14}/> CONTENT SYNC</span></section>
     <div className="update-overview"><div><span>{t('系列赛')}</span><b>{content?.series.length??0}</b><small>{content?.series.map(s=>`S${s}`).join(' · ')}</small></div><div><span>{t('季节赛周')}</span><b>{content?.weeks??0}</b><small>{t('随资源动态识别')}</small></div><div><span>{t('车辆目录')}</span><b>{content?.cars??0}</b><small>{t('原厂部件数据')}</small></div><div className="sync-status"><CheckCircle2 size={23}/><strong>{t(content?.source==='game'?'已从游戏同步':content?.source==='import'?'已导入数据包':'内置内容目录')}</strong><small>{content?.updatedAt?new Date(content.updatedAt).toLocaleString(locale==='zh'?'zh-CN':'en-US'):t('尚未同步')}</small></div></div>
     <div className="update-grid"><section className="update-panel"><div className="panel-heading"><span className="step-number">01</span><div><h2>{t('连接游戏资源')}</h2><p>{t('选择包含 media 文件夹的 FH6 安装目录。')}</p></div><Database size={22}/></div>

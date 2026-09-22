@@ -6,6 +6,9 @@ const invoke = async (name, ...args) => {
 };
 contextBridge.exposeInMainWorld("festival", {
   state: () => invoke("state"),
+  checkRelease: ()=>invoke('checkRelease'),
+  openRelease: ()=>invoke('openRelease'),
+  onReleaseChecked: fn=>{const cb=(_e,data)=>fn(data);ipcRenderer.on('releaseChecked',cb);return ()=>ipcRenderer.removeListener('releaseChecked',cb);},
   setLanguage: (value) => invoke("language", value),
   contentSettings: value=>invoke('contentSettings',value),
   syncCatalog: ()=>invoke('syncCatalog'),

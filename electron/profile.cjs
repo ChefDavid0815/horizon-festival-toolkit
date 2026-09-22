@@ -60,17 +60,20 @@ function parse(b) {
   assert(binary && database, "缺少存档状态块或车库数据库");
   const q = new Reader(b, binary.start, binary.end),
     count = q.count(2048),
+    owner = q.u64(),
     states = [];
   for (let i = 0; i < count; i++) {
     const header = q.p,
-      id = q.u64(),
+      id = i === 0 ? owner : BigInt(i),
       type = q.str(),
       base = q.str(),
       schema = q.u32(),
       sizeOffset = q.p,
       size = q.count(128 * 1024 * 1024);
     assert(size >= 4);
-    const start = q.take(size - 4);
+    const start = q.take(size);
+    const end = q.p;
+    assert.equal(q.u32(), i, "存档状态索引不一致");
     states.push({
       i,
       id,
@@ -80,12 +83,11 @@ function parse(b) {
       header,
       sizeOffset,
       start,
-      end: q.p,
+      end,
     });
   }
   assert(
-    binary.end - q.p === 8 &&
-      b.subarray(q.p, binary.end).toString("hex") === "6374656470000000",
+    binary.end === q.p,
     "状态块尾标记不一致",
   );
   assert.equal(
@@ -104,7 +106,7 @@ function replaceState(b, type, payload) {
     payload,
     b.subarray(s.end),
   ]);
-  out.writeUInt32LE(payload.length + 4, s.sizeOffset);
+  out.writeUInt32LE(payload.length, s.sizeOffset);
   out.writeUInt32LE(p.binary.size + delta, p.binary.header + 4);
   parse(out);
   return out;

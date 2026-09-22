@@ -21,11 +21,15 @@ import {
   CheckCircle2,
   CarFront,
   RefreshCw,
+  Compass,
+  Download,
+  Sparkles,
 } from "lucide-react";
 import { LanguageContext, useI18n } from "./Language.jsx";
 import { translate, browserLocale } from "./i18n.mjs";
 import Garage from './Garage.jsx';
 import Updates from './Updates.jsx';
+import Journey from './Journey.jsx';
 const api = window.festival;
 const seasonIcons = [CloudSun, Leaf, Snowflake, Flower2];
 const seriesNames = [
@@ -169,6 +173,10 @@ export default function App() {
     [selected, setSelected] = useState([]),
     [carQueue, setCarQueue] = useState([]),
     [allCars, setAllCars] = useState(false),
+    [progressionQueue,setProgressionQueue] = useState([]),
+    [wristQueue,setWristQueue] = useState([]),
+    [releaseInfo,setReleaseInfo] = useState(null),
+    [releasePrompt,setReleasePrompt] = useState(false),
     [busy, setBusy] = useState(false),
     [progress, setProgress] = useState({
       percent: 0,
@@ -193,11 +201,13 @@ export default function App() {
         setState(s);
         setSummary(s.summary);
         setBackups(s.backups);
+        setReleaseInfo(s.releases);
       })
       .catch((e) => setError(e.message));
     const progressOff=api.onProgress(setProgress);
     const contentOff=api.onContentUpdated(r=>{if(r.ok)acceptContent(r);else setError(r.error);});
-    return ()=>{progressOff();contentOff();};
+    const releaseOff=api.onReleaseChecked(r=>{setReleaseInfo(r);if(r.notify)setReleasePrompt(true);});
+    return ()=>{progressOff();contentOff();releaseOff();};
   }, []);
   const locale = state?.language?.locale || browserLocale();
   const t = (key, values) => translate(locale, key, values);
@@ -241,7 +251,7 @@ export default function App() {
   }
   function acceptContent(result){
     if(result.unchanged){setNotice(result.carsPending?'季节目录已更新；新车辆资源待解密，请在更新中心启用在线解密或导入数据包。':'内容目录已是最新。');return;}
-    setState(s=>({...s,...result}));setSummary(result.summary);setSelected([]);setCarQueue([]);setAllCars(false);
+    setState(s=>({...s,...result}));setSummary(result.summary);setSelected([]);setCarQueue([]);setAllCars(false);setProgressionQueue([]);setWristQueue([]);
     setNotice(result.carsPending?'季节目录已更新；新车辆资源待解密，请在更新中心启用在线解密或导入数据包。':'内容目录已更新，已清空选择以使用最新数据。');
   }
   async function openConnect() {
@@ -268,6 +278,7 @@ export default function App() {
       setSummary(s);
       setSelected([]);
       setCarQueue([]);setAllCars(false);
+      setProgressionQueue([]);setWristQueue([]);
       setConnect(false);
       setNotice("");
     });
@@ -296,15 +307,18 @@ export default function App() {
         weeks: selected,
         cars: carQueue,
         allCars,
+        progressionItems: progressionQueue,
+        wristbands: wristQueue,
       });
       setSummary(result.summary);
       setBackups(await api.backups());
       setSelected([]);
       setCarQueue([]);setAllCars(false);
+      setProgressionQueue([]);setWristQueue([]);
       setNotice(
         result.unchanged
           ? "所选内容已完成，存档无需修改。"
-          : "所选季节赛与车辆库存已写回，自动备份已保存。",
+          : progressionQueue.length||wristQueue.length ? "所选进度已写回，自动备份已保存。" : "所选季节赛与车辆库存已写回，自动备份已保存。",
       );
     });
   }
@@ -316,6 +330,7 @@ export default function App() {
       setSummary(null);
       setSelected([]);
       setCarQueue([]);setAllCars(false);
+      setProgressionQueue([]);setWristQueue([]);
       setBackups(await api.backups());
       setNotice("原存档已恢复；恢复前的版本也已备份。重新连接可查看结果。");
     });
@@ -359,7 +374,7 @@ export default function App() {
               </select>
             </label>
             <span className="build-label">
-              WINDOWS EDITION <b>V{state?.version || "0.2.0"}</b>
+              WINDOWS EDITION <b>V{state?.version || "0.3.0"}</b>
             </span>
             <button
               className="profile-button"
@@ -390,6 +405,7 @@ export default function App() {
           {[
             ["seasons", t("季节赛"), Flag],
             ['garage',t('车辆收藏'),CarFront],
+            ['journey',t('旅程进度'),Compass],
             ['updates',t('更新中心'),RefreshCw],
             ["backups", t("备份与恢复"), History],
           ].map(([id, label, Icon]) => (
@@ -400,7 +416,7 @@ export default function App() {
             >
               <Icon size={17} />
               {label}
-              <span>{{seasons:'PLAYLIST',garage:'GARAGE',updates:'CONTENT',backups:'RECOVERY'}[id]}</span>
+              <span>{{seasons:'PLAYLIST',garage:'GARAGE',journey:'JOURNEY',updates:'CONTENT',backups:'RECOVERY'}[id]}</span>
             </button>
           ))}
           <div className="nav-spacer" />
@@ -426,7 +442,8 @@ export default function App() {
           ) : null}
           {tab==='seasons' && summary?.seasonError ? <div className="message error" role="alert">{t(summary.seasonError)}</div> : null}
           {tab === 'garage' ? <Garage cars={state?.cars||[]} summary={summary} queue={carQueue} setQueue={setCarQueue} allCars={allCars} setAllCars={setAllCars} busy={busy}/> : null}
-          {tab === 'updates' ? <Updates state={state} busy={busy} api={api} action={action} accept={acceptContent} notice={setNotice}/> : null}
+          {tab === 'journey' ? <Journey catalog={state?.progressionCatalog} summary={summary} queue={progressionQueue} setQueue={setProgressionQueue} wristQueue={wristQueue} setWristQueue={setWristQueue} busy={busy}/> : null}
+          {tab === 'updates' ? <Updates state={state} busy={busy} api={api} action={action} accept={acceptContent} notice={setNotice} releases={releaseInfo} setReleases={setReleaseInfo} showRelease={()=>setReleasePrompt(true)}/> : null}
           {tab === "seasons" ? (
             <>
               <section className="page-intro">
@@ -718,17 +735,17 @@ export default function App() {
             </div>
           </div>
           <div className="selection-summary">
-            <b>{(selected.length + queuedCars).toString().padStart(2, "0")}</b>
+            <b key={selected.length + queuedCars + progressionQueue.length+wristQueue.length}>{(selected.length + queuedCars + progressionQueue.length+wristQueue.length).toString().padStart(2, "0")}</b>
             <span>
               {t('已选择')}
-              <small>{t('{0} 周 · {1} 辆',[selected.length,queuedCars])}</small>
+              <small>{progressionQueue.length||wristQueue.length?t('{0} 周 · {1} 辆 · {2} 项进度',[selected.length,queuedCars,progressionQueue.length+wristQueue.length]):t('{0} 周 · {1} 辆',[selected.length,queuedCars])}</small>
             </span>
           </div>
           {summary ? (
             <button
               className="apply-button"
               onClick={apply}
-              disabled={busy || (!selected.length && !queuedCars) || overCapacity || (!!selected.length && !!summary?.seasonError) || (!!queuedCars && !!summary?.garageError)}
+              disabled={busy || (!selected.length && !queuedCars && !progressionQueue.length && !wristQueue.length) || overCapacity || (!!selected.length && !!summary?.seasonError) || (!!queuedCars && !!summary?.garageError) || (!!progressionQueue.length && !!summary?.journey?.collectionError) || (!!wristQueue.length && !!summary?.journey?.wristbandError)}
             >
               {busy ? (
                 <LoaderCircle className="spin" size={20} />
@@ -766,6 +783,7 @@ export default function App() {
             />
           </div>
         ) : null}
+        {releasePrompt && releaseInfo?.available && !busy && !connect && !restoreTarget && !info ? <Modal title={t('新版本，已抵达')} close={()=>setReleasePrompt(false)}><div className="release-hero"><div className="release-orbit" aria-hidden="true"><Sparkles size={44}/></div><span className="eyebrow">THE NEXT CHAPTER</span><h3>FESTIVAL <em>{releaseInfo.release.version}</em></h3><p>{t('为你的下一段旅途，准备好了。')}</p><div className="release-version"><span>{releaseInfo.currentVersion}</span><ArrowUpRight size={18}/><b>{releaseInfo.release.version}</b></div></div><div className="release-notes"><strong>{releaseInfo.release.name}</strong><p>{releaseInfo.release.notes||t('完整更新说明与安装包可在 GitHub 查看。')}</p></div><div className="release-actions"><button className="text-btn" onClick={()=>setReleasePrompt(false)}>{t('稍后再说')}</button><button className="primary" onClick={()=>action(async()=>{await api.openRelease();setReleasePrompt(false)})}><Download size={17}/>{t('前往 GitHub 下载')}<ArrowUpRight size={17}/></button></div><p className="subtle-note">{t('每天首次打开时自动检查已发布版本。下载和安装由你决定。')}</p></Modal>:null}
         {connect ? (
           <Modal
             title={t("连接你的存档")}

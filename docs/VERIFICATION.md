@@ -1,5 +1,18 @@
 # Verification / 验证说明
 
+## V0.3.0 · 2026-09-22
+
+- Core tests: 33/33 passed, including existing playlist, garage, catalog and recovery checks.
+- The isolated decrypted QA copy resolves 38 journal categories and 2,833 entries. Every category and both campaign currency totals exactly match the completed entry ledger before edits. After full completion, Festival totals 73,480 points / 1,628 entries and Discover Japan totals 44,900 points / 1,205 entries.
+- Tests cover individual, category, path and all-entry changes, idempotence, wristband insertion into a partial inventory, byte preservation outside selected records, semantic BXML preservation outside selected totals, complete state framing, malformed hashes, unsupported schema and inconsistent-ledger rejection.
+- Daily release checks are tested across restart and local-day rollover, concurrent calls, manual retry, HTTP 304, offline/rate-limit responses, malformed/oversized data and untrusted download URLs. A real public GitHub request recognized the existing v0.2.0 prerelease.
+- Native Electron verification passed: automatic new-version dialog using an explicitly simulated v0.4.0 response, plain-text release notes, download-link handoff, single-item/category/all progress writes, individual wristband, SCopy equality, byte-exact restore, Chinese/English UI, release history, no horizontal/nav overflow at 1106 × 744, reduced motion and zero renderer errors.
+- Renderer security remains `nodeIntegration: false`, `contextIsolation: true`, `sandbox: true`.
+
+Reports: `qa/v3-desktop-*/report.json` and the local `release/VERIFICATION-0.3.0.json`. Private fixtures are excluded from both Git and packaged builds.
+
+No formal save was modified. Actual gameplay loading, story/event unlocks, reward delivery, cloud synchronization and encrypted-player-save service availability are not verified. Wristband ownership does not imply race eligibility; journal car-collection completion does not add physical garage vehicles. Binaries are unsigned.
+
 ## V0.2.0 · 2026-09-20
 
 - Production build passed. `npm test`: **22/22** passed.

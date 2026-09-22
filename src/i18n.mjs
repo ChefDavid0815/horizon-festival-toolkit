@@ -1,7 +1,8 @@
 import en from "./locales/en.json";
 import v2 from './locales/v2.en.json';
+import v3 from './locales/v3.en.json';
 export function translate(locale, key, values = {}) {
-  let text = locale === "en" ? (v2[key] ?? en[key] ?? key) : key;
+  let text = locale === "en" ? (v3[key] ?? v2[key] ?? en[key] ?? key) : ({Yellow:'黄色',Orange:'橙色',Green:'绿色',Blue:'蓝色',Purple:'紫色',Pink:'粉色',Gold:'金色'}[key]??key);
   if (locale === "en" && text.startsWith("统计字段未匹配: "))
     text =
       "Statistics field not found: " + text.slice("统计字段未匹配: ".length);

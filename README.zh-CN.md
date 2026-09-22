@@ -1,19 +1,24 @@
-<img src="docs/assets/cover-v0.2.0.svg" width="100%" alt="Horizon Festival Toolkit 0.2.0 — mint, blue and pink festival pass. 647 models, an updatable catalogue and a garage." />
+<img src="docs/assets/journey-v0.3.png" width="100%" alt="Festival Toolkit 0.3.0 — Discover Japan 旅程工作区，未连接存档" />
 
 <p align="center"><a href="README.md">English</a> · <b>简体中文</b></p>
 
 
-<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.2.0"><b>DOWNLOAD 0.2.0 ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#festival-history">VERSION JOURNAL ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">CHANGELOG ↗</a></p>
+<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.3.0"><b>DOWNLOAD 0.3.0 ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#festival-history">VERSION JOURNAL ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">CHANGELOG ↗</a></p>
 
-# Horizon Festival Toolkit · V0.2.0
+# Horizon Festival Toolkit · V0.3.0
 
-FH6 季节赛、车辆库存与可独立更新的内容工坊。保留荧光绿、粉色和浅蓝底，升级卡片、工作区和动效，支持减少动态效果的系统偏好。
+FH6 收藏手册、腕带、季节赛、车辆库存与内容工坊。0.3 延续荧光绿、粉色和浅色底，加入旅程工作区、统一精细动效、每日 GitHub 更新提醒与产品版本历史。
 
 | 季节赛 | 车辆收藏 | 内容更新 | 语言 |
 | --- | --- | --- | --- |
 | 动态系列赛与周选择 | 内置 647 款车型 | 游戏资源同步与离线内容包 | 中文 / English / 跟随系统 |
 
 ## 新功能
+
+- Discover Japan 与地平线嘉年华：**38 个分类、2,833 个子项目**，支持中文目标、搜索筛选、单项／分类／路线／全部选择，完成记录与积分一起写回。
+- 读取七色腕带持有记录，单条补齐或补齐全部缺失颜色；持有记录与剧情、赛事资格分开处理。
+- 每个本机自然日检查一次 GitHub，包含本项目使用的预发布版本。新版本弹窗跳转 Release 下载页，由用户自行下载、安装。
+- 更新中心新增 0.1.1 → 0.2.0 → 0.3.0 双语产品历史。详细说明见 [0.3 使用指南与编辑范围](docs/RELEASE-0.3.0.md)。
 
 - 左侧系列赛海报读取对应的游戏内总封面。S1–S5 各用自己的海报，四季卡片保留现有样式；内容同步也会更新新系列赛封面。
 
@@ -28,11 +33,11 @@ FH6 季节赛、车辆库存与可独立更新的内容工坊。保留荧光绿�
 
 ## 打开软件
 
-**[下载 Windows x64 0.2.0](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.2.0)** — 安装版、免安装版与 SHA-256 校验文件，安装包均未签名：
+**[下载 Windows x64 0.3.0](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.3.0)** — 安装版、免安装版与 SHA-256 校验文件，安装包均未签名：
 
-- [Horizon-Festival-Toolkit-0.2.0-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/Horizon-Festival-Toolkit-0.2.0-Setup.exe)
-- [Horizon-Festival-Toolkit-0.2.0-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/Horizon-Festival-Toolkit-0.2.0-Portable.exe)
-- [SHA256SUMS-0.2.0.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.2.0/SHA256SUMS-0.2.0.txt)
+- [Horizon-Festival-Toolkit-0.3.0-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.3.0/Horizon-Festival-Toolkit-0.3.0-Setup.exe)
+- [Horizon-Festival-Toolkit-0.3.0-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.3.0/Horizon-Festival-Toolkit-0.3.0-Portable.exe)
+- [SHA256SUMS-0.3.0.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.3.0/SHA256SUMS-0.3.0.txt)
 
 源码启动需要 Node.js 与 npm：
 
@@ -47,14 +52,14 @@ npm start
 
 ## 打开工坊，看一看
 
-真实 Windows 0.2.0 截图，中文界面，未连接存档。界面中的游戏海报归各自权利人所有。
+真实 Windows 0.3.0 截图，中文界面，未连接存档。界面中的游戏海报归各自权利人所有。
 
-<img src="docs/assets/workspace-v0.2.png" width="100%" alt="Festival Toolkit 0.2.0 — playlist and four seasonal cards" />
+<img src="docs/assets/workspace-v0.3.png" width="100%" alt="Festival Toolkit 0.3.0 — playlist and four seasonal cards" />
 
 <details>
 <summary><b>打开车库 / 647 款车型</b></summary>
 
-<img src="docs/assets/garage-v0.2.png" width="100%" alt="Festival Toolkit 0.2.0 — searchable garage, disconnected" />
+<img src="docs/assets/garage-v0.3.png" width="100%" alt="Festival Toolkit 0.3.0 — searchable garage, disconnected" />
 
 </details>
 
@@ -64,7 +69,7 @@ npm start
 
 新系列赛必须已存在于所连接存档。可以先在游戏内打开新系列赛，再退出并重新连接。新事件类型、加密方式或存档 schema 变化仍需适配；不会因为导入了目录就凭空写入未知结构。
 
-见 [V0.2 使用指南](docs/RELEASE-0.2.0.md) 和 [内容包格式](docs/CONTENT-PACKS.md)。
+见 [V0.3 使用指南](docs/RELEASE-0.3.0.md) 和 [内容包格式](docs/CONTENT-PACKS.md)。
 
 ## 验证与边界
 
