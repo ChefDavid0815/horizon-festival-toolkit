@@ -1,5 +1,9 @@
 # Festival Toolkit 0.3.0 · The Journey Update
 
+![Festival Toolkit 0.3 — Let every journey bloom](https://raw.githubusercontent.com/ChefDavid0815/horizon-festival-toolkit/main/docs/assets/cover-v0.3.0.svg)
+
+[展柜 / Exhibition](https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit) · [版本历史 / Version journal](https://chefzc-homepage.vercel.app/gallery.html#festival-history) · [近况 / Now](https://chefzc-homepage.vercel.app/now.html#milestone-festival03)
+
 Windows x64 · 安装版 / 免安装版 · 未签名 / NotSigned
 
 ## 新的一程

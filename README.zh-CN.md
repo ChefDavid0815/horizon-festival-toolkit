@@ -1,4 +1,4 @@
-<img src="docs/assets/journey-v0.3.png" width="100%" alt="Festival Toolkit 0.3.0 — Discover Japan 旅程工作区，未连接存档" />
+<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover-v0.3.0.svg" width="100%" alt="Festival Toolkit 0.3 — Let every journey bloom. Mint, blue and pink journal, compass and seven woven bands." /></a>
 
 <p align="center"><a href="README.md">English</a> · <b>简体中文</b></p>
 
@@ -49,6 +49,18 @@ npm start
 
 按 [tools/README.md](tools/README.md) 安装并核验上游工具后，运行 `npm run package` 打包。`npm run dev` 仅用于界面开发；存档功能依赖 Electron，没有独立可用的网页版。
 
+
+## 旅程绽放 / The journey
+
+沿用[个人展柜](https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit)的浅绿、淡蓝与粉色，以纸质手册、指南针和七色织带呈现 0.3。封面是原创矢量作品；装饰路线不代表游戏地图或玩家进度。
+
+<img src="docs/assets/journey-v0.3.png" width="100%" alt="0.3 旅程工作区真实截图，中文界面，未连接存档" />
+
+<details><summary><b>展开七色腕带收藏</b></summary>
+
+<img src="docs/assets/wristbands-v0.3.png" width="100%" alt="0.3 腕带收藏真实截图，未连接存档" />
+
+</details>
 
 ## 打开工坊，看一看
 

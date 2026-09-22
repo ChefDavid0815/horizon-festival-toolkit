@@ -1,4 +1,4 @@
-<img src="docs/assets/journey-v0.3.png" width="100%" alt="Festival Toolkit 0.3.0 — the Discover Japan journal workspace, disconnected" />
+<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover-v0.3.0.svg" width="100%" alt="Festival Toolkit 0.3 — Let every journey bloom. Mint, blue and pink journal, compass and seven woven bands." /></a>
 
 <p align="center"><b>English</b> · <a href="README.zh-CN.md">简体中文</a></p>
 
@@ -49,6 +49,18 @@ npm start
 
 Install and verify the upstream dependency as described in [tools/README.md](tools/README.md), then run `npm run package`. `npm run dev` provides only the renderer development environment; save operations require Electron.
 
+
+## The journey / 旅程绽放
+
+The same pale mint, sky blue and pink from the [exhibition](https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit), now drawn as a paper journal, compass and seven woven bands. Original vector artwork; the routes are decorative, not a game map or player progress.
+
+<img src="docs/assets/journey-v0.3.png" width="100%" alt="Actual 0.3 journey workspace, Chinese interface, disconnected" />
+
+<details><summary><b>Seven colours / Wristbands</b></summary>
+
+<img src="docs/assets/wristbands-v0.3.png" width="100%" alt="Actual 0.3 wristband view, disconnected" />
+
+</details>
 
 ## A look inside
 
