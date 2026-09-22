@@ -26,4 +26,3 @@ test('404, malformed responses, rate limits and oversized bodies never produce a
 test('cached release is compared against the newly installed app version',async()=>{
   const c=await setup(async()=>Response.json([release]));await c.check();const updated=new ReleaseChecker({dataDir:path.dirname(c.file),version:'0.4.0'});await updated.init();assert.equal(updated.view().available,false);
 });
-
