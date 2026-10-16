@@ -1,6 +1,6 @@
 # Changelog / 版本记录
 
-## 0.4.0 · 2026-10-16 · Source / 源码版本
+## 0.4.0 · 2026-10-16 · Current / 当前版本
 
 - Tuning workshop: every car's tune read from the save, with tyre pressure, gearing, alignment, anti-roll, damping, brakes and differential in real units; tune source (stock, local, own, downloaded with creator) shown per car. / 调校工坊：读取每辆车完整调校，换算实际单位并标注调校来源。
 - Scenario calculator for road, street, dirt, cross country, drift, drag, snow and top speed; keeps existing gearing. / 八种场景调校计算，保留原有齿比。

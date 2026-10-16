@@ -1,6 +1,10 @@
 # Festival Toolkit 0.4.0 · 调校工坊 / The Tuning Update
 
-Windows x64 · 源码版本，尚未发布安装包 / Source version, installer not yet published
+![Festival Toolkit 0.4 — Every tune has a source](https://raw.githubusercontent.com/ChefDavid0815/horizon-festival-toolkit/main/docs/assets/cover-v0.4.0.png)
+
+[下载 / Download](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.0) · [README](https://github.com/ChefDavid0815/horizon-festival-toolkit#readme) · [版本记录 / Changelog](https://github.com/ChefDavid0815/horizon-festival-toolkit/blob/main/CHANGELOG.md)
+
+Windows x64 · 安装版 / 免安装版 · 未签名 / NotSigned
 
 ## 调校工坊
 

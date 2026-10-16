@@ -1,55 +1,89 @@
-<a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit"><img src="docs/assets/cover-v0.3.0.svg" width="100%" alt="Festival Toolkit 0.3 — Let every journey bloom. Mint, blue and pink journal, compass and seven woven bands." /></a>
+<a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.0"><img src="docs/assets/cover-v0.4.0.png" width="100%" alt="Festival Toolkit 0.4 — Every tune has a source. Vehicle-register cover with a vermilion seal, a setup sheet showing staged tuning changes, and playlist reward cars." /></a>
 
 <p align="center"><b>English</b> · <a href="README.zh-CN.md">简体中文</a></p>
 
+<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.0"><b>DOWNLOAD 0.4.0 ↓</b></a> &nbsp; / &nbsp; <a href="docs/RELEASE-0.4.0.md">0.4 GUIDE ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">CHANGELOG ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">EXHIBITION ↗</a></p>
 
-<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.3.0"><b>DOWNLOAD 0.3.0 ↓</b></a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#festival-history">VERSION JOURNAL ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">CHANGELOG ↗</a></p>
+# Horizon Festival Toolkit · V0.4.0
 
-# Horizon Festival Toolkit · V0.3.0
+A Windows workshop for your own Forza Horizon 6 save. It reads every car's tune and upgrades, the CR you actually paid for each part, playlist weeks and their reward cars, journals, wristbands and the garage. You choose what to change; the toolkit backs up the save, checks the result and writes it back.
 
-A Windows workshop for FH6 journals, wristbands, playlists, car inventory and independently updatable content. Version 0.3 keeps the festival palette and adds a detailed journey workspace, coordinated motion, daily GitHub updates and release history.
+| Tuning | Playlist | Garage | Journey | Language |
+| --- | --- | --- | --- | --- |
+| Setup sheet, scenario calculator, build transfer, CR ledger | Follows game updates, reward cars | 647 models, add or fill missing | 38 categories, 2,833 entries, 7 wristbands | 简体中文 / English / System |
 
-| Playlist | Garage | Content | Language |
-| --- | --- | --- | --- |
-| Dynamic series and week selection | 647 bundled models | Local game sync + offline packs | English / 简体中文 / System |
+## Download
 
-## New in 0.4 (source): the tuning workshop
+**[Windows x64 · 0.4.0](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.0)** — installer, portable app, SHA-256 checksums and the verification report:
 
-- Read every car's tune from your save, in real units where the game uses a fixed slider range (tyre pressure, gearing, alignment, anti-roll, damping, brakes, differential), and see who made a downloaded tune.
-- Generate a tune for road, street, dirt, cross country, drift, drag, snow or top speed. The calculator keeps the car's existing gearing.
-- Copy a tune, or a tune plus the full upgrade build, between cars of the same model. CR cost is priced from the parts actually bought in your save; nothing touches your CR balance.
-- Garage upgrade ledger: exact CR spent on upgrades, by car and by class.
-- Local tune library with import/export, and on-demand CODMunity share-code lookup (share codes are downloaded in game).
-- The playlist follows game updates automatically (Steam/Xbox install found, checked every minute) and shows every week's, series' and event's reward cars, with a button to stage the ones you don't own.
-- A redesigned interface built on a vehicle-register look, with seals on staged changes. See the [0.4 guide](docs/RELEASE-0.4.0.md).
+- [Horizon-Festival-Toolkit-0.4.0-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.0/Horizon-Festival-Toolkit-0.4.0-Setup.exe)
+- [Horizon-Festival-Toolkit-0.4.0-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.0/Horizon-Festival-Toolkit-0.4.0-Portable.exe)
+- [SHA256SUMS-0.4.0.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.0/SHA256SUMS-0.4.0.txt)
 
-## What you can do
+The binaries are unsigned, so Windows SmartScreen may ask for confirmation. Quit the game before connecting a save.
 
-- Explore Discover Japan and Horizon Festival: **38 categories and 2,833 journal entries**, with localized descriptions, search, filters and individual/category/path/all selection. Completion records and point totals update together.
-- Inspect seven wristband ownership records and add one colour or every missing colour. Ownership is separate from story and race eligibility.
-- Check GitHub once per local day, including published prereleases. The update dialog opens the release download page; downloading and installing remain manual.
-- Browse the bilingual 0.1.1 → 0.2.0 → 0.3.0 history in the update centre. See the [0.3 guide and exact editing scope](docs/RELEASE-0.3.0.md).
+## Tuning workshop
 
-- Use each series' actual in-game cover in the series poster. Covers are read from local texture archives and cached; the four season cards keep their existing styling.
+<img src="docs/assets/tuning-v0.4.png" width="100%" alt="Tuning workshop: car list on the left, Lotus Evija FE setup sheet on the right with a staged road tune shown as vermilion markers beside the current values. Player ID and file path masked." />
 
-- Search cars by model, make, year or ID; common Chinese make aliases work too.
-- Add 1–20 copies of a selected model, including cars you already own, or add one of every missing catalog model.
-- Select a week, a series or all recognized playlist records. Apply car and playlist changes together.
-- Sync the catalog from local game resources. Optional checks run on launch and every 30 minutes while the app is open. Supported new content does not require a toolkit reinstall.
-- Import/export independent JSON content packs and retain historical definitions.
-- Keep automatic backups, verify original/SCopy independently on restore, and validate encrypted-save round trips before write-back.
+- **Setup sheet.** Every car's tune, read from the save. Tyre pressure (15–55 psi), gear ratios (0.48–6.00), camber and toe (±5°), caster (1–7°), anti-roll bars (1–65), rebound and bump (1–20), brake balance and pressure, and differential locking are converted to real units. These ranges were recovered from the slider grid of saved tunes. Springs, ride height, downforce and final drive have car-specific ranges and are shown as slider positions.
+- **Where a tune came from.** Stock setup, your own tune, a local tune, or a downloaded tune with the creator's XUID suffix.
+- **Scenario calculator.** Road, street, dirt, cross country, drift, drag, snow and top speed, with handling-balance and stiffness steps. It starts from the car's weight split and the drivetrain you choose, and keeps the existing gearing. Treat it as a starting point, not a tested setup.
+- **Copy between cars of the same model.** Copy a tune, or a tune plus the whole upgrade build. The build's cost is priced from the parts the source car actually bought, and the PI change is shown before anything is written. Restoring the stock tune is one click.
+- **Garage upgrade ledger.** The exact CR spent on upgrades, per car and per class (D to X). Click a class to filter the list. The toolkit never changes your CR balance.
+- **Tune library.** Kept on your PC; import and export packs to share with other toolkit users.
+- **Community tunes.** Look up share codes for the car on public CODMunity pages. Share codes are downloaded in game (Upgrades & Tuning → Find tuning setups); reconnect the save afterwards to keep the tune or copy it to other cars of that model.
 
-The app starts disconnected and never edits a save automatically. **Back up & apply** writes the selected changes. The garage writer preserves existing cars and checks unrelated database tables and profile states.
+<details><summary><b>Garage upgrade ledger</b></summary>
 
-## Run or build
+<img src="docs/assets/tuning-ledger-v0.4.png" width="100%" alt="Garage upgrade ledger: total CR spent on upgrades and a bar per class from D to X, above the car list and setup sheet." />
 
-**[Get the Windows x64 release](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.3.0)** — installer, portable app and SHA-256 checksums:
+</details>
 
-- [Horizon-Festival-Toolkit-0.3.0-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.3.0/Horizon-Festival-Toolkit-0.3.0-Setup.exe)
-- [Horizon-Festival-Toolkit-0.3.0-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.3.0/Horizon-Festival-Toolkit-0.3.0-Portable.exe)
-- [SHA256SUMS-0.3.0.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.3.0/SHA256SUMS-0.3.0.txt)
+## Playlist
 
-These binaries are unsigned. Start from source with Node.js/npm:
+<img src="docs/assets/playlist-v0.4.png" width="100%" alt="Seasonal playlist, Series 5: four week cards, each showing points with reward thresholds as notches on the meter and the two reward cars beneath." />
+
+- **Follows game updates.** With no folder set, the toolkit finds the Steam or Xbox install by itself and checks the game resources every minute while it is open. When an update replaces them, new series, weeks, events and rewards are read in. A game that is still downloading is simply waited for.
+- **Reward cars.** Each week's point rewards, the series-total rewards and event rewards come from the game resources. Thresholds sit on each meter and turn green once reached, and cars you own carry a check mark. **Add missing** stages the reward cars you don't have for the garage.
+- Choose a week, a whole series or everything, and write completion records and points together. A new series must exist in your save first: open it once in game, quit, then reconnect.
+
+<details><summary><b>Reward cars for the whole series</b></summary>
+
+<img src="docs/assets/rewards-v0.4.png" width="100%" alt="Reward cars for Series 5 by week: 20 and 40 point rewards and event rewards, with owned cars ticked and an Add 5 missing button." />
+
+</details>
+
+## Garage, journal and wristbands
+
+- Search 647 models by name, make, year or ID (common Chinese make names work too). Add 1–20 copies of a model, or one of every missing model.
+- Discover Japan and Horizon Festival journals: 38 categories and 2,833 entries. Select single entries, a category, a whole path or everything; completion records and point totals update together.
+- Seven wristband ownership records, one at a time or all missing colours.
+
+<details><summary><b>Garage and journal</b></summary>
+
+<img src="docs/assets/garage-v0.4.png" width="100%" alt="Car collection: catalog fields, search, and car cards with class, PI and add buttons." />
+
+<img src="docs/assets/journey-v0.4.png" width="100%" alt="Journey progress: completion, items and points fields above the category index and journal entries." />
+
+</details>
+
+## How changes are written
+
+Nothing is written when you browse. Every selection, from playlist weeks and cars to journal entries and tunes, is staged and marked with a seal. **Back up & apply** then:
+
+1. saves the original file and its `_SCopy`;
+2. builds the edited save in memory and checks that untouched cars, columns, tables and save sections are unchanged byte for byte;
+3. re-encrypts and decrypts the result to compare it;
+4. writes both files.
+
+**Backups & restore** brings back any earlier version and keeps a snapshot of the current one first.
+
+## Content updates
+
+The reader parses `media/ObjectModelGame.zip` for playlists and rewards, and builds car configurations from `media/Stripped/gamedbRC.slt`. A changed encrypted car database needs optional online decryption or an imported content pack. Content sync never reads or uploads player saves. Independent JSON content packs can be imported and exported; see the [content pack format](docs/CONTENT-PACKS.md).
+
+## Build from source
 
 ```powershell
 npm ci
@@ -57,52 +91,19 @@ npm run build
 npm start
 ```
 
-Install and verify the upstream dependency as described in [tools/README.md](tools/README.md), then run `npm run package`. `npm run dev` provides only the renderer development environment; save operations require Electron.
-
-
-## The journey / 旅程绽放
-
-The same pale mint, sky blue and pink from the [exhibition](https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit), now drawn as a paper journal, compass and seven woven bands. Original vector artwork; the routes are decorative, not a game map or player progress.
-
-<img src="docs/assets/journey-v0.3.png" width="100%" alt="Actual 0.3 journey workspace, Chinese interface, disconnected" />
-
-<details><summary><b>Seven colours / Wristbands</b></summary>
-
-<img src="docs/assets/wristbands-v0.3.png" width="100%" alt="Actual 0.3 wristband view, disconnected" />
-
-</details>
-
-## A look inside
-
-Actual Windows 0.3.0 captures, Chinese interface, disconnected. The game poster belongs to its respective rights holders.
-
-<img src="docs/assets/workspace-v0.3.png" width="100%" alt="Festival Toolkit 0.3.0 — playlist and four seasonal cards" />
-
-<details>
-<summary><b>Open the garage / 647 models</b></summary>
-
-<img src="docs/assets/garage-v0.3.png" width="100%" alt="Festival Toolkit 0.3.0 — searchable garage, disconnected" />
-
-</details>
-
-## Content updates
-
-Choose the FH6 installation folder in **Content updates**. The reader parses `media/ObjectModelGame.zip` directly and builds vehicle configurations from `media/Stripped/gamedbRC.slt`. A changed encrypted vehicle database requires optional online decryption or an imported content pack. Content sync only uses game resources, never player saves.
-
-New series must also exist in the connected save. Open the new playlist in the game first, exit, then reconnect. Unknown event types, encryption or save schemas still require adapter work; the app stops unsupported edits instead of inventing data.
-
-Read the [V0.3 guide](docs/RELEASE-0.3.0.md) and [content pack format](docs/CONTENT-PACKS.md).
+Install and verify the upstream tool as described in [tools/README.md](tools/README.md), then run `npm run package`. `npm run dev` serves only the renderer; save operations need Electron.
 
 ## Verification and boundaries
 
-`npm test` covers profile, garage, catalog, backups and preferences. Full fixture tests and `npm run verify:desktop` require the private `qa/cli-roundtrip.bin`; no private save is distributed. [Verification details](docs/VERIFICATION.md) distinguish local resource checks, synthetic future-series checks and desktop fixture writes from real gameplay.
+`npm test` runs 45 tests. They cover the save, garage, tuning, library, community parsing, rewards, live sync, catalog, backups and preferences. `npm run verify:desktop` and `npm run verify:journey` drive the real app against a private save copy, and include tuning and build writes end to end. That copy is never published. Details are in [VERIFICATION.md](docs/VERIFICATION.md) and the release's `VERIFICATION-0.4.0.json`.
 
-Encrypted **player-save** operations use the bundled [ForzaCryptoTool](https://github.com/DVS-code/Forza-Crypto-Tool) and upload the selected save to `forzamods.dev`. The connection dialog explains this. Optional encrypted **game-resource** sync sends `gamedbRC.slt` to the same service. No personal credentials are bundled.
+- Encrypted **player saves** go through the bundled [ForzaCryptoTool](https://github.com/DVS-code/Forza-Crypto-Tool), which uploads the selected save to `forzamods.dev`; the connection dialog says so. Optional online decryption of the **game's** car database sends `gamedbRC.slt` to the same service.
+- Community lookups request public codmunity.gg pages only when you open that tab.
+- Not verified: in-game loading and driving with written tunes, how the game recalculates copied builds, reward delivery, online sync and future save schemas.
+- The 0.4 reward reader was checked against resources from game build 2.440.853.0.
+- Install detection was tested on Steam, but a full live sync on a freshly installed game has not been run yet.
+- Added cars do not grant ownership of paid content.
 
-In-game loading, driving, rewards, independent challenge substates, online synchronization and future schemas are not verified. Inventory changes do not grant ownership of downloadable game content. The editor currently recognizes FestivalPass v4 / schema `0x6efc7e34` and enforces its own 2,000-car capacity boundary.
+[Changelog](CHANGELOG.md) · [Sources and third-party notices](THIRD_PARTY.md) · [Design notes](DESIGN.md)
 
-[Changelog](CHANGELOG.md) · [Sources and third-party notices](THIRD_PARTY.md)
-
-Independent unofficial project. Not affiliated with Microsoft, Xbox or Playground Games. Game content remains the property of its owners.
-
-**YOUR FESTIVAL. YOUR WAY.**
+Independent unofficial project, not affiliated with Microsoft, Xbox or Playground Games. Game content remains the property of its owners.

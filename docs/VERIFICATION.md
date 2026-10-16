@@ -1,5 +1,22 @@
 # Verification / 验证说明
 
+## V0.4.0 · 2026-10-16
+
+- Core tests: **45/45** passed.
+  - 9 tuning tests: slider unit grids, calculator bounds, garage and spend reading, same-model tune and build transfer with field-by-field preservation of every other car and column, calculator/manual/reset writes, cross-model/gearbox/duplicate rejection, library capture and import/export, preview without writing, community page parsing and URL limits.
+  - 3 playlist tests: reward extraction from a synthetic resource graph, validator bounds and backfill of older cached catalogs, resource fingerprint and the minute watcher.
+- Tune ranges were recovered from the private QA save: 68 tuned cars and 768 garage rows. Every fixed-range field fits a single step grid (for example 1/400 for 15–55 psi tyre pressure and 1/5520 for 0.48–6.00 gears). Upgrade spend equals the sum of `PricePaid` for all 768 cars.
+- Native Electron verification passed in development Electron. It covers the 0.3 flows plus:
+  - a Snow calculator tune written through **Back up & apply**: tyre pressure decoded, gearing unchanged, SCopy identical;
+  - a same-model tune + build transfer: tune values equal to the source, class matching, spend reconciled to purchase records, garage size unchanged;
+  - byte-exact restore;
+  - zero renderer errors and no layout overlap at 1106 × 744.
+- Playlist rewards: the bundled catalog was regenerated from a decoded resource dump of game build 2.440.853.0. The dump reproduced all 20 bundled weeks exactly before rewards were added: 40 week rewards, 10 series rewards and 87 event rewards, 119 distinct cars, all present in the car catalog.
+- Install detection found the Steam folder `steamapps/common/ForzaHorizon6` on the test machine. The game was being reinstalled, so a full live sync against fresh resources was **not** run.
+- Renderer security unchanged: `nodeIntegration: false`, `contextIsolation: true`, `sandbox: true`. The CSP is unchanged; fonts ship as files rather than `data:` URIs.
+
+Packaged installer, installed app and portable checks are recorded in the release asset `VERIFICATION-0.4.0.json`. No formal save was modified. In-game loading and driving with written tunes, how the game recalculates copied builds, reward delivery and online sync are not verified. Binaries are unsigned.
+
 ## V0.3.0 · 2026-09-22
 
 - Core tests: 33/33 passed, including existing playlist, garage, catalog and recovery checks.
