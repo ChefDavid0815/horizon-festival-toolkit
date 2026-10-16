@@ -46,6 +46,23 @@ function seasonsFromArchive(bytes, build) {
     const o=child(decode(e.getData()),'object')[0];
     if(o) objects.set(o.a.id.split('.')[0],o);
   }
+  return seasonsFromObjects(objects,build);
+}
+// Playlist rewards: FestivalPassSchedule lists each season's and the series' point bonuses; FestivalPassBonusMap resolves
+// them to a points threshold plus a reward object (OM::CarReward carries the car ordinal). Events carry a MainRewardRef.
+function rewardsFromObjects(objects){
+  const rewardOf=guid=>{const o=guid&&objects.get(fnv(guid).toString());if(!o)return null;if(o.a.type==='OM::CarReward'){const car=Number(val(o,'Car'));return Number.isInteger(car)&&car>0?{type:'car',car}:null;}return {type:String(o.a.type).replace(/^OM::/,'').slice(0,40),car:null};};
+  const bonusMap=[...objects.values()].find(o=>o.a.type==='FestivalPassBonusMap'),bonuses=new Map(),weeks=new Map(),series={};
+  for(const m of descendants(bonusMap,x=>x.tag==='map_element')){const k=child(m,'key')[0]?.a.value,v=child(m,'value')[0],points=Number(val(v,'Points')),reward=rewardOf(ref(v,'Reward'));if(k&&Number.isInteger(points)&&reward)bonuses.set(k,{points,...reward});}
+  const list=(s,field)=>child(prop(s,field),'element').map(e=>bonuses.get(e.a.value)).filter(Boolean).sort((a,b)=>a.points-b.points);
+  for(const s of objects.values())if(s.a.type==='FestivalPassSchedule'){
+    const n=Number((/Series(\d+)[\\/]/.exec(val(s,'ImagePath')||'')||[])[1]);if(!(n>0))continue;
+    for(let i=0;i<4;i++){const r=list(s,`Season${i+1}Bonuses`);if(r.length)weeks.set(`${n}:${i}`,r);}
+    const r=list(s,'SeriesBonuses');if(r.length)series[n]=r;
+  }
+  return {weeks,series,event:o=>{const r=rewardOf(ref(o,'MainRewardRef'));return r?.type==='car'?{car:r.car}:undefined;}};
+}
+function seasonsFromObjects(objects, build) {
   const get=id=>{const o=objects.get(fnv(id).toString());assert(o,'Missing referenced resource');return o;};
   const seasonmap=new Map();
   for(const o of objects.values())if(o.a.type==='FestivalPassEventInfo'){
@@ -60,25 +77,26 @@ function seasonsFromArchive(bytes, build) {
     const k=child(m,'key')[0]?.a.value,v=child(m,'value')[0];
     if(k && val(v,'Points')!==undefined) points[k]=Number(val(v,'Points'));
   }
-  const weeks=[];
+  const weeks=[],rewards=rewardsFromObjects(objects);
   for(const p of child(eventmap,'property')) for(const m of child(p,'map_element')){
     const guid=child(m,'key')[0]?.a.value;if(!seasonmap.has(guid))continue;
     const [series,week]=seasonmap.get(guid),local=get(guid),events=new Map();
-    const add=(type,id,source)=>{
+    const add=(type,id,source,reward)=>{
       assert(Object.hasOwn(types,type) && Number.isFinite(points[type]),`Unknown event type: ${type}`);
-      const value={type:types[type],id:'0x'+BigInt(id).toString(16).padStart(16,'0'),name:type,points:points[type]*(type==='ForzathonDaily'?7:1),parts:type==='ForzathonDaily'?7:type==='ForzathonWeekly'?4:0,source};
+      const value={type:types[type],id:'0x'+BigInt(id).toString(16).padStart(16,'0'),name:type,points:points[type]*(type==='ForzathonDaily'?7:1),parts:type==='ForzathonDaily'?7:type==='ForzathonWeekly'?4:0,source,...(reward?{reward}:{})};
       events.set(`${type}:${value.id}`,value);
     };
     for(const r of descendants(child(m,'value')[0],x=>x.tag==='property'&&x.a.id==='Object')){
       const o=get(r.a.value),type=val(o,'EventType'),v=val(o,'EventId');
-      if(type==='TreasureChest')continue;assert(typeof v==='string');add(type,/^\d+$/.test(v)?v:fnv(v),v);
+      if(type==='TreasureChest')continue;assert(typeof v==='string');add(type,/^\d+$/.test(v)?v:fnv(v),v,rewards.event(o));
     }
     for(const [field,type] of [['ForzathonDailySchedule','ForzathonDaily'],['ForzathonWeeklySchedule','ForzathonWeekly']]){const v=ref(local,field);assert(v);add(type,fnv(v),v);}
     for(const r of child(prop(local,'TreasureChests'),'element'))add('TreasureChest',r.a.value,r.a.value);
-    const list=[...events.values()];weeks.push({key:`${series}:${week}`,series,week,season:cn[week],seasonEn:seasons[week],title:names[series]||`SERIES ${series}`,maxPoints:list.reduce((n,e)=>n+e.points,0),events:list});
+    const list=[...events.values()],key=`${series}:${week}`;weeks.push({key,series,week,season:cn[week],seasonEn:seasons[week],title:names[series]||`SERIES ${series}`,maxPoints:list.reduce((n,e)=>n+e.points,0),events:list,...(rewards.weeks.has(key)?{rewards:rewards.weeks.get(key)}:{})});
   }
   weeks.sort((a,b)=>a.series-b.series||a.week-b.week);
-  const data={version:1,resourceBuild:build,weeks};validatePack({format:'festival-catalog',version:2,resourceBuild:build,seasons:data});return data;
+  const present=new Set(weeks.map(w=>w.series)),seriesRewards=Object.fromEntries(Object.entries(rewards.series).filter(([n])=>present.has(Number(n))));
+  const data={version:1,resourceBuild:build,weeks,seriesRewards};validatePack({format:'festival-catalog',version:2,resourceBuild:build,seasons:data});return data;
 }
 function rows(db,q){const r=db.exec(q)[0];return r?r.values.map(v=>Object.fromEntries(r.columns.map((c,i)=>[c,v[i]]))):[];}
 async function carsFromDatabase(bytes,build){
@@ -133,4 +151,4 @@ async function readResources({gamePath,previousCars,allowOnline,toolPath,ready,r
   tick(85,'验证更新目录');
   return {pack:validatePack({format:'festival-catalog',version:2,resourceBuild:build,seasons:seasonData,...(carData?{cars:carData}:{})}),carsPending,fingerprint};
 }
-module.exports={decode,seasonsFromArchive,carsFromDatabase,readResources};
+module.exports={decode,seasonsFromArchive,seasonsFromObjects,rewardsFromObjects,carsFromDatabase,readResources};

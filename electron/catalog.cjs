@@ -6,6 +6,9 @@ const bundledSeasons = require('../data/seasons.json');
 const bundledCars = require('../data/cars.json');
 const LIMIT = 24 * 1024 * 1024;
 const digest = x => createHash('sha256').update(JSON.stringify(x)).digest('hex');
+const carId = v => Number.isInteger(v) && v > 0 && v < 10000000;
+const validReward = r => r && typeof r === 'object' && Number.isInteger(r.points) && r.points >= 0 && r.points <= 10000 && typeof r.type === 'string' && r.type.length > 0 && r.type.length <= 40 && (r.car === null || carId(r.car)) && Object.keys(r).length === 3;
+const validRewards = list => Array.isArray(list) && list.length <= 12 && list.every(validReward);
 function validatePack(pack) {
   assert(pack && pack.format === 'festival-catalog' && pack.version === 2, '不支持的数据包版本');
   assert(typeof pack.resourceBuild === 'string' && pack.resourceBuild.length <= 100, '数据包缺少资源版本');
@@ -25,9 +28,13 @@ function validatePack(pack) {
         const key = `${e.type}:${e.id.toLowerCase()}`; assert(!ids.has(key), '重复的活动编号'); ids.add(key);
         assert(Number.isInteger(e.points) && e.points >= 0 && e.points <= 100, '活动积分无效');
         assert(e.parts === (e.type === 4 ? 7 : e.type === 5 ? 4 : 0), '活动子状态格式无效');
+        if (e.reward !== undefined) assert(e.reward && carId(e.reward.car) && Object.keys(e.reward).length === 1, '活动奖励无效');
       }
       assert(Number.isInteger(w.maxPoints) && w.maxPoints > 0 && w.maxPoints < 1000 && w.maxPoints === w.events.reduce((n,e) => n + e.points, 0), '活动积分合计不匹配');
+      if (w.rewards !== undefined) assert(validRewards(w.rewards), '季节奖励无效');
     }
+    const series = pack.seasons.seriesRewards;
+    if (series !== undefined) assert(series && typeof series === 'object' && !Array.isArray(series) && Object.keys(series).length <= 1000 && Object.entries(series).every(([k,v]) => /^[1-9]\d{0,3}$/.test(k) && validRewards(v)), '系列赛奖励无效');
   }
   if (pack.cars) {
     assert(Array.isArray(pack.cars.cars) && pack.cars.cars.length > 0 && pack.cars.cars.length <= 10000, '车辆目录大小无效');
@@ -46,10 +53,19 @@ function validatePack(pack) {
   }
   return pack;
 }
+// Catalogs cached by 0.3 predate reward data; fill gaps from the bundled catalog, which comes from the same game build.
+function withRewards(seasons) {
+  const weeks = new Map(bundledSeasons.weeks.map(w => [w.key, w]));
+  return { ...seasons, seriesRewards: { ...bundledSeasons.seriesRewards, ...seasons.seriesRewards }, weeks: seasons.weeks.map(w => {
+    const b = weeks.get(w.key); if (!b) return w;
+    const events = new Map(b.events.map(e => [`${e.type}:${e.id}`, e.reward]));
+    return { ...w, ...(w.rewards || !b.rewards ? {} : { rewards: b.rewards }), events: w.events.map(e => e.reward || !events.get(`${e.type}:${e.id}`) ? e : { ...e, reward: events.get(`${e.type}:${e.id}`) }) };
+  }) };
+}
 class CatalogStore {
   constructor(directory) { this.file = path.join(directory,'catalog-v2.json'); this.pack = { format:'festival-catalog', version:2, resourceBuild:bundledSeasons.resourceBuild, seasons:bundledSeasons, cars:bundledCars, source:'bundled', updatedAt:null }; this.warning = null; }
   async init() {
-    try { const stat = await fs.stat(this.file); assert(stat.size <= LIMIT); this.pack = validatePack(JSON.parse(await fs.readFile(this.file,'utf8'))); }
+    try { const stat = await fs.stat(this.file); assert(stat.size <= LIMIT); const pack = validatePack(JSON.parse(await fs.readFile(this.file,'utf8'))); this.pack = validatePack({ ...pack, seasons: withRewards(pack.seasons) }); }
     catch (e) { if (e.code !== 'ENOENT') this.warning = '本地目录缓存无效，已使用内置目录'; }
   }
   get seasons() { return this.pack.seasons; }
@@ -62,7 +78,7 @@ class CatalogStore {
     const cars = new Map(this.cars.cars.map(c=>[c.id,c]));
     for (const c of incoming.cars?.cars || []) cars.set(c.id,c);
     return validatePack({format:'festival-catalog',version:2,resourceBuild:incoming.resourceBuild,source,updatedAt:new Date().toISOString(),
-      seasons:{...this.seasons,...incoming.seasons,weeks:[...weeks.values()].sort((a,b)=>a.series-b.series||a.week-b.week)},
+      seasons:withRewards({...this.seasons,...incoming.seasons,seriesRewards:{...this.seasons.seriesRewards,...incoming.seasons?.seriesRewards},weeks:[...weeks.values()].sort((a,b)=>a.series-b.series||a.week-b.week)}),
       cars:{...this.cars,...incoming.cars,cars:[...cars.values()].sort((a,b)=>a.id-b.id)}});
   }
   async commit(pack) {
@@ -75,4 +91,4 @@ class CatalogStore {
   }
   async readFile(file) { const stat = await fs.stat(file); assert(stat.isFile() && stat.size <= LIMIT,'数据包文件过大'); return validatePack(JSON.parse(await fs.readFile(file,'utf8'))); }
 }
-module.exports = { CatalogStore, validatePack, digest, LIMIT };
+module.exports = { CatalogStore, validatePack, digest, LIMIT, withRewards };

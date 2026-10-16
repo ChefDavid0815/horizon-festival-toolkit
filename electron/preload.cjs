@@ -23,6 +23,21 @@ contextBridge.exposeInMainWorld("festival", {
   restore: (id) => invoke("restore", id),
   backups: () => invoke("backups"),
   openBackups: () => invoke("openBackups"),
+  tuningGarage: () => invoke("tuningGarage"),
+  tuningCar: (id) => invoke("tuningCar", id),
+  tuningCalc: (id, options) => invoke("tuningCalc", id, options),
+  tuningPreview: (requests) => invoke("tuningPreview", requests),
+  libraryGet: (id) => invoke("libraryGet", id),
+  libraryCapture: (id, options) => invoke("libraryCapture", id, options),
+  librarySaveCalc: (id, options, name) => invoke("librarySaveCalc", id, options, name),
+  libraryUpdate: (id, value) => invoke("libraryUpdate", id, value),
+  libraryRemove: (id) => invoke("libraryRemove", id),
+  libraryImport: () => invoke("libraryImport"),
+  libraryExport: (ids) => invoke("libraryExport", ids),
+  communitySearch: (car) => invoke("communitySearch", car),
+  communityTunes: (slug) => invoke("communityTunes", slug),
+  openCommunity: (url) => invoke("openCommunity", url),
+  copyShareCode: (code) => invoke("copyShareCode", code),
   onProgress: (fn) => {
     const cb = (_e, data) => fn(data);
     ipcRenderer.on("progress", cb);

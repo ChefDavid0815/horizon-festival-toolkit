@@ -13,6 +13,16 @@ A Windows workshop for FH6 journals, wristbands, playlists, car inventory and in
 | --- | --- | --- | --- |
 | Dynamic series and week selection | 647 bundled models | Local game sync + offline packs | English / 简体中文 / System |
 
+## New in 0.4 (source): the tuning workshop
+
+- Read every car's tune from your save, in real units where the game uses a fixed slider range (tyre pressure, gearing, alignment, anti-roll, damping, brakes, differential), and see who made a downloaded tune.
+- Generate a tune for road, street, dirt, cross country, drift, drag, snow or top speed. The calculator keeps the car's existing gearing.
+- Copy a tune, or a tune plus the full upgrade build, between cars of the same model. CR cost is priced from the parts actually bought in your save; nothing touches your CR balance.
+- Garage upgrade ledger: exact CR spent on upgrades, by car and by class.
+- Local tune library with import/export, and on-demand CODMunity share-code lookup (share codes are downloaded in game).
+- The playlist follows game updates automatically (Steam/Xbox install found, checked every minute) and shows every week's, series' and event's reward cars, with a button to stage the ones you don't own.
+- A redesigned interface built on a vehicle-register look, with seals on staged changes. See the [0.4 guide](docs/RELEASE-0.4.0.md).
+
 ## What you can do
 
 - Explore Discover Japan and Horizon Festival: **38 categories and 2,833 journal entries**, with localized descriptions, search, filters and individual/category/path/all selection. Completion records and point totals update together.

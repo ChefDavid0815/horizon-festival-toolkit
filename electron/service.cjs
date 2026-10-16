@@ -9,6 +9,10 @@ const progression = require('./progression.cjs');
 const { CatalogStore, digest } = require('./catalog.cjs');
 const { readResources } = require('./resources.cjs');
 const { ArtworkStore } = require('./artwork.cjs');
+const tuning = require('./tuning.cjs');
+const { TuneLibrary } = require('./tunelib.cjs');
+const { Community } = require('./community.cjs');
+const { detectGame, resourceStamp } = require('./gamepath.cjs');
 const TOOL_SHA =
   "4b08e2f42e581281c0409009f8ea53f828a0a23e6633d0b79cdc7585ca705212";
 const run = (exe, args, timeout = 180000) =>
@@ -29,7 +33,7 @@ const exists = (p) =>
     .then(() => true)
     .catch(() => false);
 class Service {
-  constructor({ dataDir, toolPath, progress = () => {}, testRoot = null }) {
+  constructor({ dataDir, toolPath, progress = () => {}, testRoot = null, version = '0', fetcher }) {
     this.dataDir = dataDir;
     this.toolPath = toolPath;
     this.progress = progress;
@@ -38,7 +42,9 @@ class Service {
     this.busy = false;
     this.catalogs = new CatalogStore(dataDir);
     this.artwork = new ArtworkStore(dataDir);
-    this.syncSettings = { gamePath:'', autoSync:false, allowOnline:false };
+    this.library = new TuneLibrary(dataDir);
+    this.community = new Community({ dataDir, version, ...(fetcher ? { fetcher } : {}) });
+    this.syncSettings = { gamePath:'', autoSync:false, allowOnline:false, autoDetected:false, resourceStamp:'' };
   }
   checkPath(file) {
     if (this.testRoot) {
@@ -53,7 +59,9 @@ class Service {
     if (!this.initialized) {
       await this.catalogs.init();
       await this.artwork.init();
-      try { const config=JSON.parse(await fs.readFile(path.join(this.dataDir,'content-settings.json'),'utf8')); if(typeof config.gamePath==='string') this.syncSettings={gamePath:config.gamePath,autoSync:config.autoSync===true,allowOnline:config.allowOnline===true}; } catch {}
+      await this.library.init();
+      await this.community.init();
+      try { const config=JSON.parse(await fs.readFile(path.join(this.dataDir,'content-settings.json'),'utf8')); if(typeof config.gamePath==='string') this.syncSettings={gamePath:config.gamePath,autoSync:config.autoSync===true,allowOnline:config.allowOnline===true,autoDetected:config.autoDetected===true,resourceStamp:typeof config.resourceStamp==='string'?config.resourceStamp.slice(0,200):''}; } catch {}
       this.initialized=true;
     }
   }
@@ -64,19 +72,35 @@ class Service {
     return this.exclusive(async()=>{
       if(!value || typeof value.gamePath!=='string' || value.gamePath.length>1024 || (value.gamePath&&!path.isAbsolute(value.gamePath)) || typeof value.autoSync!=='boolean' || typeof value.allowOnline!=='boolean')throw Error('更新设置无效');
       if(value.gamePath)this.checkPath(path.join(value.gamePath,'media','ObjectModelGame.zip'));
-      const config={gamePath:value.gamePath,autoSync:value.autoSync,allowOnline:value.allowOnline};
-      const file=path.join(this.dataDir,'content-settings.json'),tmp=file+'.'+randomUUID()+'.tmp';
-      try{await fs.writeFile(tmp,JSON.stringify(config),{flag:'wx'});await fs.rename(tmp,file);}finally{await fs.rm(tmp,{force:true});}
-      this.syncSettings=config;return config;
+      const same=value.gamePath===this.syncSettings.gamePath;
+      return this.saveSync({gamePath:value.gamePath,autoSync:value.autoSync,allowOnline:value.allowOnline,autoDetected:same&&this.syncSettings.autoDetected,resourceStamp:same?this.syncSettings.resourceStamp:''});
     });
   }
+  async saveSync(config) {
+    const file=path.join(this.dataDir,'content-settings.json'),tmp=file+'.'+randomUUID()+'.tmp';
+    try{await fs.writeFile(tmp,JSON.stringify(config),{flag:'wx'});await fs.rename(tmp,file);}finally{await fs.rm(tmp,{force:true});}
+    this.syncSettings=config;return config;
+  }
+  // Called every minute: finds a freshly installed game once, then syncs whenever a game update replaces its resources.
+  async watchResources() {
+    if(this.busy)return null;
+    let s=this.syncSettings,detected=false;
+    if(!s.gamePath){if(this.testRoot)return null;const found=await detectGame(run);if(!found||this.syncSettings.gamePath)return null;s=await this.saveSync({...s,gamePath:found,autoSync:true,autoDetected:true,resourceStamp:''});detected=true;}
+    if(!s.autoSync)return detected?{detected,syncSettings:s,unchanged:true}:null;
+    const stamp=await resourceStamp(s.gamePath);
+    if(!stamp||stamp===s.resourceStamp||stamp===this.failedStamp)return detected?{detected,syncSettings:s,unchanged:true}:null;
+    await new Promise(r=>setTimeout(r,2500));
+    if(await resourceStamp(s.gamePath)!==stamp||this.busy)return null;
+    try{return {...(await this.syncCatalog()),detected};}catch(e){this.failedStamp=stamp;throw e;}
+  }
   async inspect(plain) {
-    let weeks=[],carSummary=null,seasonError=null,garageError=null;
+    let weeks=[],carSummary=null,seasonError=null,garageError=null,tuningTotals=null,tuningError=null;
     try{weeks=profile.inspectSeasons(plain,this.catalogs.seasons);}catch(e){seasonError=e.message;}
     try{carSummary=await garage.inspectGarage(plain,this.catalogs.cars);}catch(e){garageError=e.message;}
+    try{tuningTotals=(await tuning.readGarage(plain,this.catalogs.cars)).totals;}catch(e){tuningError=e.message;}
     const journey=progression.inspectProgression(plain);
     if(seasonError&&garageError&&journey.collectionError&&journey.wristbandError)throw Error(seasonError+' / '+garageError);
-    return {weeks,garage:carSummary,seasonError,garageError,journey};
+    return {weeks,garage:carSummary,seasonError,garageError,journey,tuning:tuningTotals,tuningError};
   }
   async acceptCatalog(incoming,source) {
     const pack=this.catalogs.preview(incoming,source);
@@ -97,7 +121,8 @@ class Service {
       const result=await this.acceptCatalog(r.pack,'game');
       this.tick(92,'读取游戏系列赛封面');
       const artwork=await this.artwork.sync(gamePath,this.catalogs.summary().series);
-      this.tick(100,'内容目录已更新');return {...result,artwork,unchanged:!!result.unchanged&&!artwork.changed,carsPending:r.carsPending};
+      const stamp=await resourceStamp(gamePath);if(stamp)await this.saveSync({...this.syncSettings,resourceStamp:stamp});
+      this.tick(100,'内容目录已更新');return {...result,artwork,syncSettings:this.syncSettings,unchanged:!!result.unchanged&&!artwork.changed,carsPending:r.carsPending};
     });
   }
   async exclusive(fn) {
@@ -216,9 +241,41 @@ class Service {
   }
   summary() {
     if (!this.session) return null;
-    const { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid, journey } = this.session;
-    return { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid, journey };
+    const { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid, journey, tuning, tuningError } = this.session;
+    return { file, encrypted, sourceHash, weeks, garage, seasonError, garageError, xuid, journey, tuning, tuningError };
   }
+  requireSession() {
+    if (!this.session) throw Error("先连接一个存档");
+    return this.session;
+  }
+  async tuningGarage() { return tuning.readGarage(this.requireSession().plain, this.catalogs.cars); }
+  async tuningCar(id) { return tuning.carDetail(this.requireSession().plain, id, this.catalogs.cars); }
+  async tuningCalc(id, options) { const car = await this.tuningCar(id); return { ...tuning.calculate(car, options), car: car.id }; }
+  async tuningPreview(requests) { return (await tuning.patchTunes(this.requireSession().plain, requests, { library: this.library, data: this.catalogs.cars, dryRun: true })).audit; }
+  libraryList() { return this.library.list(); }
+  libraryGet(id) { const item = this.library.get(id); if (!item) throw Error('调校库中没有这条记录'); return item; }
+  async libraryCapture(id, options = {}) {
+    if (!options || typeof options !== 'object' || Object.keys(options).some((k) => !['name', 'build', 'notes'].includes(k))) throw Error('收藏请求无效');
+    return this.exclusive(async () => {
+      const entry = await tuning.capture(this.requireSession().plain, id, { name: options.name, build: options.build === true }, this.catalogs.cars);
+      const result = await this.library.add({ ...entry, notes: typeof options.notes === 'string' ? options.notes.slice(0, 500) : '' });
+      return { ...result, items: this.library.list() };
+    });
+  }
+  async librarySaveCalc(id, options = {}, name = '') {
+    return this.exclusive(async () => {
+      const car = await this.tuningCar(id), calc = tuning.calculate(car, options);
+      const entry = await tuning.capture(this.requireSession().plain, id, { name: name || `${car.make} ${car.name} · ${options.scenario}` }, this.catalogs.cars);
+      const result = await this.library.add({ ...entry, values: calc.values, meta: null, creator: null, origin: 'calculator', scenario: options.scenario, notes: `${options.drivetrain} · balance ${options.balance || 0} · stiffness ${options.stiffness || 0}` });
+      return { ...result, items: this.library.list() };
+    });
+  }
+  async libraryUpdate(id, value) { return this.exclusive(async () => { await this.library.update(id, value || {}); return this.library.list(); }); }
+  async libraryRemove(id) { return this.exclusive(async () => { await this.library.remove(id); return this.library.list(); }); }
+  async libraryImport(file) { return this.exclusive(async () => { this.checkPath(file); const r = await this.library.importFile(file); return { ...r, items: this.library.list() }; }); }
+  async libraryExport(file, ids) { this.checkPath(file); const pack = this.library.pack(ids); await fs.writeFile(file, JSON.stringify(pack, null, 2)); return { file, count: pack.items.length }; }
+  communitySearch(car) { return this.community.search(car); }
+  communityTunes(slug) { return this.community.tunes(slug); }
   async backups() {
     await this.init();
     const dir = path.join(this.dataDir, "backups"),
@@ -320,12 +377,12 @@ class Service {
       if (
         !options ||
         typeof options !== "object" ||
-        Object.keys(options).some((k) => !['weeks','cars','allCars','progressionItems','wristbands'].includes(k))
+        Object.keys(options).some((k) => !['weeks','cars','allCars','progressionItems','wristbands','tunes'].includes(k))
       )
         throw Error("修改请求无效");
-      const { weeks = [], cars = [], allCars = false, progressionItems = [], wristbands = [] } = options;
+      const { weeks = [], cars = [], allCars = false, progressionItems = [], wristbands = [], tunes = [] } = options;
       if (!this.session) throw Error("先连接一个存档");
-      if (!Array.isArray(weeks) || !Array.isArray(cars) || !Array.isArray(progressionItems) || !Array.isArray(wristbands) || typeof allCars!=='boolean' || (!weeks.length && !cars.length && !allCars && !progressionItems.length && !wristbands.length))
+      if (!Array.isArray(weeks) || !Array.isArray(cars) || !Array.isArray(progressionItems) || !Array.isArray(wristbands) || !Array.isArray(tunes) || typeof allCars!=='boolean' || (!weeks.length && !cars.length && !allCars && !progressionItems.length && !wristbands.length && !tunes.length))
         throw Error("请选择要修改的内容");
       await this.gameClosed();
       const s = this.session;
@@ -340,11 +397,12 @@ class Service {
       }
       if(cars.length || allCars){const p=await garage.patchGarage(b,{cars,allCars},this.catalogs.cars);b=p.buffer;audit.push(p.audit);}
       if(progressionItems.length || wristbands.length){const p=progression.patchProgression(b,{items:progressionItems,wristbands});b=p.buffer;audit.push(p.audit);}
+      if(tunes.length){this.tick(20,'写入车辆调校');const p=await tuning.patchTunes(b,tunes,{library:this.library,data:this.catalogs.cars});b=p.buffer;audit.push(p.audit);}
       const inspected = await this.inspect(b);
       const originalDb = profile.parse(s.plain).database,
         editedDb = profile.parse(b).database;
       if (
-        !cars.length && !allCars && !s.plain
+        !cars.length && !allCars && !tunes.length && !s.plain
           .subarray(originalDb.start, originalDb.end)
           .equals(b.subarray(editedDb.start, editedDb.end))
       )

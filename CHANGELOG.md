@@ -1,6 +1,16 @@
 # Changelog / 版本记录
 
-## 0.3.0 · 2026-09-22 · Current / 当前版本
+## 0.4.0 · 2026-10-16 · Source / 源码版本
+
+- Tuning workshop: every car's tune read from the save, with tyre pressure, gearing, alignment, anti-roll, damping, brakes and differential in real units; tune source (stock, local, own, downloaded with creator) shown per car. / 调校工坊：读取每辆车完整调校，换算实际单位并标注调校来源。
+- Scenario calculator for road, street, dirt, cross country, drift, drag, snow and top speed; keeps existing gearing. / 八种场景调校计算，保留原有齿比。
+- Same-model tune and build transfer priced from real purchase records; reset to stock; garage upgrade ledger by class. / 同车型调校与改装复制，按实际成交价计算 CR；车库改装账本。
+- Local tune library with validated import/export packs; CODMunity share-code lookup on demand. / 本机调校库与导入导出；按需搜索社区分享码。
+- Playlist follows game updates: Steam/Xbox install auto-detected, resources checked every minute; week, series and event reward cars shown with ownership, and missing ones can be staged for the garage. / 季节赛随游戏更新自动读取，显示奖励车辆并可补齐。
+- Complete visual redesign: vehicle-register world, side navigation, staged-change seals, rolling figures, self-hosted Noto Serif SC and Barlow Semi Condensed. / 全新车检证风格界面。
+- See [0.4 guide and boundaries](docs/RELEASE-0.4.0.md). In-game effects of written tunes and builds are not verified. / 游戏内效果未验证。
+
+## 0.3.0 · 2026-09-22 · Previous / 历史版本
 
 - Daily GitHub release checks, persistent local-day cache, offline handling, update dialog and a validated download-page link. Includes published prereleases used by this project. / 每日检查 GitHub 发布、更新弹窗与下载页跳转。
 - Discover Japan and Festival journals: 38 categories / 2,833 items, localized labels, search, filters and individual/category/path/all selection. / 两条主路线、分类与子项目的读取和选择。

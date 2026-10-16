@@ -1,8 +1,8 @@
 {
   "name": "horizon-festival-toolkit",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
-  "description": "FH6 playlist, garage and journey workshop",
+  "description": "FH6 playlist, garage, tuning and journey workshop",
   "author": "Festival Toolkit",
   "main": "electron/main.cjs",
   "scripts": {
@@ -13,10 +13,14 @@
     "package": "npm run build && electron-builder --win nsis portable --x64",
     "verify:desktop": "node scripts/verify-v2.cjs",
     "verify:resources": "node scripts/verify-resources.cjs",
-    "verify:journey": "node scripts/verify-v3.cjs"
+    "verify:journey": "node scripts/verify-v3.cjs",
+    "prebuild": "node scripts/build-fonts.cjs",
+    "build:rewards": "node scripts/build-rewards.cjs"
   },
   "devDependencies": {
     "@fontsource/barlow-condensed": "^5.2.8",
+    "@fontsource/barlow-semi-condensed": "^5.3.0",
+    "@fontsource/noto-serif-sc": "^5.3.1",
     "@playwright/test": "1.58.2",
     "@vitejs/plugin-react": "5.1.4",
     "electron": "44.4.1",
@@ -50,6 +54,8 @@
       "CHANGELOG.md",
       "docs/VERIFICATION.md",
       "data/progression.json",
+      "docs/RELEASE-0.4.0.md",
+      "PRODUCT.md",
       "docs/RELEASE-0.3.0.md"
     ],
     "extraResources": [
