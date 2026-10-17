@@ -4,7 +4,7 @@ import {useI18n} from './Language.jsx';
 import {Seal,Roll,PageHead} from './ui.jsx';
 const colors={1:'#e8c93a',5:'#ec8a3f',2:'#7fb04a',3:'#4f9cc4',6:'#8f6bc9',4:'#e0679f',7:'#b8974a'};
 const order=[1,5,2,3,6,4,7];
-export default function Journey({catalog,summary,queue,setQueue,wristQueue,setWristQueue,busy}){
+export default function Journey({catalog,summary,queue,setQueue,wristQueue,setWristQueue,busy,diagnose}){
   const {t,locale}=useI18n(),[path,setPath]=useState('discovery'),[category,setCategory]=useState(null),[query,setQuery]=useState(''),[page,setPage]=useState(0),[filter,setFilter]=useState('all');
   const journey=summary?.journey,loaded=!!summary;
   const campaigns=journey?.campaigns.length?journey.campaigns:catalog?.campaigns||[];
@@ -35,7 +35,8 @@ export default function Journey({catalog,summary,queue,setQueue,wristQueue,setWr
         <div className="field"><dt className="field-tab">{t('积分')}</dt><dd><Roll value={loaded?(campaign?.points??0).toLocaleString():'—'}/></dd><small>/ {campaign?.max?.toLocaleString()} PTS</small></div>
         <div className={`field action-field ${pending?'staged':''}`}><dt className="field-tab">{t('本路线')}</dt><dd><Roll value={pending}/><small> {t('项待写入')}</small></dd><button className="small-btn" disabled={!canEdit} onClick={()=>add(pathItems)}><Sparkles size={15}/>{t('拉满整个进度')}</button></div>
       </dl>
-      {journey?.collectionError?<div className="message error" role="alert">{t(journey.collectionError)}</div>:null}
+      {journey?.collectionError?<div className="message error" role="alert"><span>{t(journey.collectionError)}</span><button className="text-btn" onClick={diagnose} disabled={busy}>{t('导出诊断信息')}</button></div>:null}
+      {journey?.unknownItems?.count||journey?.unknownItems?.revised?<p className="assurance"><MapPin size={16}/><span>{journey.unknownItems.count?t('存档中有 {0} 个新收藏项目（来自游戏更新），已原样保留，不会被修改；其余项目可以正常编辑。',[journey.unknownItems.count]):''}{journey.unknownItems.revised?` ${t('另有 {0} 个项目被游戏更新修订过，仅显示，不可编辑。',[journey.unknownItems.revised])}`:''}</span></p>:null}
       {!loaded?<p className="assurance"><MapPin size={16}/><span>{t('连接存档后显示真实进度，并可选择要拉满的项目。')}</span></p>:null}
       <div className="journal-layout">
         <aside className="index-list" aria-label={t('进度分类')}><h2 className="panel-tab">{t('收藏目录')}<span>{availableCategories.length}</span></h2>

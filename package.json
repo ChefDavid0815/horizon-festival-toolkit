@@ -1,6 +1,6 @@
 {
   "name": "horizon-festival-toolkit",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "FH6 playlist, garage, tuning and journey workshop",
   "author": "Festival Toolkit",
@@ -56,7 +56,8 @@
       "data/progression.json",
       "docs/RELEASE-0.4.0.md",
       "PRODUCT.md",
-      "docs/RELEASE-0.3.0.md"
+      "docs/RELEASE-0.3.0.md",
+      "docs/RELEASE-0.4.1.md"
     ],
     "extraResources": [
       {

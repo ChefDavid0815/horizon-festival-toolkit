@@ -26,7 +26,7 @@ test('playlist rewards resolve schedule bonuses and event main rewards to car or
   assert.equal(r.event({tag:'object',a:{},children:[ref('MainRewardRef','spin')]}),undefined);
 });
 test('bundled playlist carries rewards and the validator bounds them',()=>{
-  assert(seasons.weeks.every(w=>w.rewards?.length===2&&w.rewards.every(r=>r.car>0)));assert.equal(Object.keys(seasons.seriesRewards).length,5);
+  assert(seasons.weeks.every(w=>w.rewards?.length===2&&w.rewards.every(r=>r.car>0)));assert.equal(Object.keys(seasons.seriesRewards).length,6);
   const pack=()=>({format:'festival-catalog',version:2,resourceBuild:'t',seasons:structuredClone(seasons)});validatePack(pack());
   for(const mutate of [p=>{p.seasons.weeks[0].rewards[0].car=-1},p=>{p.seasons.weeks[0].rewards[0].extra=1},p=>{p.seasons.weeks[0].rewards=Array(13).fill(p.seasons.weeks[0].rewards[0])},p=>{p.seasons.weeks[0].events.find(e=>e.reward).reward={car:1,note:'x'}},p=>{p.seasons.seriesRewards={abc:[]}}]){const p=pack();mutate(p);assert.throws(()=>validatePack(p));}
   const stale={...structuredClone(seasons),seriesRewards:undefined,weeks:seasons.weeks.map(({rewards,...w})=>({...w,events:w.events.map(({reward,...e})=>e)}))};

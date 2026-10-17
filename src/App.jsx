@@ -9,7 +9,7 @@ import Tuning from './Tuning.jsx';
 import { Seal, Roll, PageHead } from './ui.jsx';
 const api = window.festival;
 const seasonIcons = [CloudSun, Leaf, Snowflake, Flower2];
-const seriesNames = ["", "欢迎来到日本", "跨越年代", "意式风情", "吉祥物派对", "英伦汽车"];
+const seriesNames = ["", "欢迎来到日本", "跨越年代", "意式风情", "吉祥物派对", "英伦汽车", "地平线车聚"];
 const eventNames = { SeasonalEvent: '季节锦标赛', Trial: '试炼赛', PRStunt: 'PR 特技', ForzathonDaily: '每日挑战', ForzathonWeekly: '每周挑战', MonthlyRival: '月度对手', PhotoChallenge: '摄影挑战', TreasureChest: '宝箱', HorizonOpen: '地平线公开赛', Eliminator: '淘汰者', Collectibles: '收集品', StuntParty: '特技派对', HideSeek: '捉迷藏', SeasonalJob: '季节工作', HorizonLifeEvent: '地平线生活' };
 // Point thresholds sit on the meter as notches; a reached notch fills in.
 function RewardMeter({ points, max, rewards = [] }) {
@@ -160,6 +160,9 @@ export default function App() {
       setNotice(result.unchanged ? "所选内容已完成，存档无需修改。" : hadTunes ? "调校与改装已写回，自动备份已保存。" : hadProgress ? "所选进度已写回，自动备份已保存。" : "所选季节赛与车辆库存已写回，自动备份已保存。");
     });
   }
+  async function exportDiagnostics() {
+    await action(async () => { const file = await api.exportDiagnostics(); if (file) setNotice('诊断信息已导出。它只包含季节赛、收藏手册与腕带的结构数据，不含玩家编号、车库或文件路径，可以直接发给开发者。'); });
+  }
   async function restore() {
     const id = restoreTarget.id;
     setRestoreTarget(null);
@@ -170,7 +173,7 @@ export default function App() {
     });
   }
   const carIndex = new Map((state?.cars || []).map(c => [c.id, c]));
-  const carLabel = id => { const c = carIndex.get(id); return c ? `${c.year} ${c.make} ${prettyName(c.name)}` : `#${id}`; };
+  const carLabel = id => { const c = carIndex.get(id); return c ? `${c.year} ${c.make} ${prettyName(c.name)}` : t("目录外车辆 #{0}", [id]); };
   const owned = id => !!summary?.garage?.counts?.[id];
   const seriesRewards = state?.catalog?.seriesRewards?.[series] || [];
   const rewardCars = [...new Set([...visibleWeeks.flatMap(w => [...(w.rewards || []), ...w.events.map(e => e.reward).filter(Boolean)]), ...seriesRewards].map(r => r.car).filter(Boolean))];
@@ -209,17 +212,17 @@ export default function App() {
               <ChevronRight size={16} />
             </button>
             <label className="rail-language"><Languages size={16} /><select aria-label="Language / 语言" value={state?.language?.preference || "system"} onChange={(e) => changeLanguage(e.target.value)} disabled={!state || busy || languageSaving}><option value="system">{t("跟随系统")}</option><option value="zh">简体中文</option><option value="en">English</option></select></label>
-            <div className="rail-meta"><span>Windows · V{state?.version || "0.4.0"}</span><button onClick={() => setInfo(true)}><Info size={14} />{t("使用说明")}</button></div>
+            <div className="rail-meta"><span>Windows · V{state?.version || "0.4.1"}</span><button onClick={() => setInfo(true)}><Info size={14} />{t("使用说明")}</button></div>
           </div>
         </aside>
         <div className="workspace">
           <main key={tab} className="page">
             {error ? <div className="message error" role="alert"><Info size={18} /><span>{t(error)}</span><button onClick={() => setError("")} aria-label={t("关闭")}>×</button></div> : null}
             {notice ? <div className="message success" role="status"><CheckCircle2 size={18} /><span>{t(notice)}</span><button onClick={() => setNotice("")} aria-label={t("关闭")}>×</button></div> : null}
-            {tab === 'seasons' && summary?.seasonError ? <div className="message error" role="alert">{t(summary.seasonError)}</div> : null}
+            {tab === 'seasons' && summary?.seasonError ? <div className="message error" role="alert"><Info size={18} /><span>{t(summary.seasonError)}</span><button className="text-btn" onClick={exportDiagnostics} disabled={busy}>{t('导出诊断信息')}</button></div> : null}
             {tab === 'garage' ? <Garage cars={state?.cars || []} summary={summary} queue={carQueue} setQueue={setCarQueue} allCars={allCars} setAllCars={setAllCars} busy={busy} /> : null}
             {tab === 'tuning' && state?.tuningMeta ? <Tuning meta={state.tuningMeta} summary={summary} library={library} setLibrary={setLibrary} queue={tuneQueue} setQueue={setTuneQueue} busy={busy} api={api} connect={openConnect} /> : null}
-            {tab === 'journey' ? <Journey catalog={state?.progressionCatalog} summary={summary} queue={progressionQueue} setQueue={setProgressionQueue} wristQueue={wristQueue} setWristQueue={setWristQueue} busy={busy} /> : null}
+            {tab === 'journey' ? <Journey catalog={state?.progressionCatalog} summary={summary} queue={progressionQueue} setQueue={setProgressionQueue} wristQueue={wristQueue} setWristQueue={setWristQueue} busy={busy} diagnose={exportDiagnostics} /> : null}
             {tab === 'updates' ? <Updates state={state} busy={busy} api={api} action={action} accept={acceptContent} notice={setNotice} releases={releaseInfo} setReleases={setReleaseInfo} showRelease={() => setReleasePrompt(true)} /> : null}
             {tab === "seasons" ? <>
               <PageHead title={t("每一周，都值得点亮")} sub={t("挑选你的赛季与季节，批量编辑整周的完成记录与季节积分。")}>
@@ -347,6 +350,7 @@ export default function App() {
               <li><b>{t("点击“备份并应用修改”。")}</b><p>{t("自动备份，验证修改并加密回读，然后写回原路径。")}</p></li>
             </ol>
             <div className="service-note"><Info size={18} /><p>{t("本工具验证存档数据结构与字段。尚未验证游戏实际读档、所有卡片显示和独立挑战子状态；不会额外发放挑战奖励。不同版本或线上服务可能重新计算进度。")}</p></div>
+            {summary ? <div className="modal-actions"><button className="small-btn" onClick={() => { setInfo(false); exportDiagnostics(); }} disabled={busy}><Download size={16} />{t('导出诊断信息')}</button></div> : null}
             <p className="credits">{t("独立的非官方工具，与 Microsoft、Xbox、Playground Games 无隶属关系。")}</p>
           </Modal>
         ) : null}

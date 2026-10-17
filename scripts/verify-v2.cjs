@@ -70,12 +70,12 @@ let app;
   await expect(page.getByText('Save restored. The previous version was also backed up. Reconnect to view the result.')).toBeVisible({timeout:30000});assert((await fs.readFile(fixture)).equals(sample));
   await page.getByRole('button',{name:'Content updates'}).click();
   if(!process.env.FESTIVAL_EXECUTABLE)await page.screenshot({path:path.join(qa,'03-updates-en.png'),animations:'disabled'});
-  const seasons=structuredClone(profile.seasons);seasons.weeks=seasons.weeks.filter(w=>w.series===5).map(w=>({...w,series:6,key:`6:${w.week}`,title:'QA SERIES SIX'}));
-  const packFile=path.join(qa,'future-content.json');await fs.writeFile(packFile,JSON.stringify({format:'festival-catalog',version:2,resourceBuild:'synthetic-S6',seasons}));
+  const seasons=structuredClone(profile.seasons);seasons.weeks=seasons.weeks.filter(w=>w.series===5).map(w=>({...w,series:7,key:`7:${w.week}`,title:'QA SERIES SEVEN'}));
+  const packFile=path.join(qa,'future-content.json');await fs.writeFile(packFile,JSON.stringify({format:'festival-catalog',version:2,resourceBuild:'synthetic-S7',seasons}));
   await app.evaluate(({dialog},file)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[file]});},packFile);
   await page.getByRole('button',{name:'Import content pack'}).click();await expect(page.getByText('Content catalog updated. Selections cleared to use the latest data.')).toBeVisible();
-  await page.getByRole('button',{name:'Seasonal playlist'}).click();await page.getByRole('tab',{name:/S6/}).click();
-  await expect(page.getByRole('button',{name:'Select S6 week 1 Summer'})).toBeVisible();
+  await page.getByRole('button',{name:'Seasonal playlist'}).click();await page.getByRole('tab',{name:/S7/}).click();
+  await expect(page.getByRole('button',{name:'Select S7 week 1 Summer'})).toBeVisible();
   await page.setViewportSize({width:1106,height:744});
   const layout=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,cardBottom:document.querySelectorAll('.week-card')[3].getBoundingClientRect().bottom,dockTop:document.querySelector('.dock').getBoundingClientRect().top,pageBottom:document.querySelector('.page').getBoundingClientRect().bottom,navOverflow:document.querySelector('.rail-nav').scrollHeight>document.querySelector('.rail-nav').clientHeight}));assert(!layout.overflow&&!layout.navOverflow);assert(layout.pageBottom<=layout.dockTop+1,JSON.stringify(layout));
   await page.emulateMedia({reducedMotion:'reduce'});const motion=await page.locator('.page').evaluate(e=>getComputedStyle(e).animationName);assert.equal(motion,'none');
@@ -89,8 +89,8 @@ let app;
   }
   await app.close();app=null;page=await open();
   if(process.env.FESTIVAL_RESOURCE_FIXTURE){await expect.poll(async()=>(await page.evaluate(()=>window.festival.state())).content.source,{timeout:20000}).toBe('game');autoSyncTested=true;}
-  const restarted=await page.evaluate(()=>window.festival.state());assert.equal(restarted.language.preference,'zh');assert.equal(restarted.catalog.weeks.length,24);assert.equal(restarted.summary,null);
+  const restarted=await page.evaluate(()=>window.festival.state());assert.equal(restarted.language.preference,'zh');assert.equal(restarted.catalog.weeks.length,28);assert.equal(restarted.summary,null);
   await app.close();app=null;assert.deepEqual(errors,[]);
-  const report={passed:true,version:restarted.version,executable:launch.executablePath||'development Electron',checks:['tuning calculator write','same-model tune and build transfer','Chinese make search','English search','empty search','single car quantity +2','add all missing','idempotent collection','season-only preserves garage','backup restore','S6 data pack import','catalog restart persistence','language persistence','minimum window layout','reduced motion','sandbox'],autoSyncTested,layout,security,formalSaveAccess:false,fixtureCarWrites:true,inGameVerified:false,rendererErrors:errors};
+  const report={passed:true,version:restarted.version,executable:launch.executablePath||'development Electron',checks:['tuning calculator write','same-model tune and build transfer','Chinese make search','English search','empty search','single car quantity +2','add all missing','idempotent collection','season-only preserves garage','backup restore','S7 data pack import','catalog restart persistence','language persistence','minimum window layout','reduced motion','sandbox'],autoSyncTested,layout,security,formalSaveAccess:false,fixtureCarWrites:true,inGameVerified:false,rendererErrors:errors};
   await fs.writeFile(path.join(qa,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({qa,...report},null,2));
 })().catch(async e=>{console.error(e);if(app)await app.close().catch(()=>{});process.exitCode=1;});

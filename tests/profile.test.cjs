@@ -27,20 +27,23 @@ function unchangedExcept(before, after, types) {
     );
   }
 }
-test("catalog contains 20 unique weeks and verified series maximums", () => {
-  assert.equal(p.seasons.weeks.length, 20);
-  assert.equal(new Set(p.seasons.weeks.map((w) => w.key)).size, 20);
+test("catalog contains 24 unique weeks and verified series maximums", () => {
+  assert.equal(p.seasons.weeks.length, 24);
+  assert.equal(new Set(p.seasons.weeks.map((w) => w.key)).size, 24);
   assert.deepEqual(
-    [1, 2, 3, 4, 5].map((s) =>
+    [1, 2, 3, 4, 5, 6].map((s) =>
       p.seasons.weeks
         .filter((w) => w.series === s)
         .reduce((n, w) => n + w.maxPoints, 0),
     ),
-    [180, 200, 212, 211, 211],
+    [180, 200, 212, 211, 211, 212],
   );
 });
 test("inspection is read-only and resolves all known weeks", () => {
-  assert.equal(p.inspectSeasons(input).length, 20);
+  // The QA save predates Series 6, so its four weeks are listed but not available.
+  const weeks = p.inspectSeasons(input);
+  assert.equal(weeks.length, 24);
+  assert.equal(weeks.filter((w) => w.available).length, 20);
   assert.equal(p.sha(input), originalHash);
 });
 test("single-week patch preserves other weeks, garage database, and all other states", () => {
@@ -57,11 +60,13 @@ test("single-week patch preserves other weeks, garage database, and all other st
   assert.equal(p.sha(input), originalHash);
 });
 test("full selection sets 20 weeks to maximum and is byte-idempotent", () => {
-  const keys = p.seasons.weeks.map((w) => w.key),
+  const keys = p.inspectSeasons(input).filter((w) => w.available).map((w) => w.key),
     result = p.patchSeasons(input, keys);
+  assert.equal(keys.length, 20);
   assert(
     p
       .inspectSeasons(result.buffer)
+      .filter((w) => w.available)
       .every((w) => w.complete && w.points === w.maxPoints),
   );
   assert(p.patchSeasons(result.buffer, keys).buffer.equals(result.buffer));

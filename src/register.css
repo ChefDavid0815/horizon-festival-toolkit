@@ -146,6 +146,7 @@ select:focus-visible { outline: 2px solid var(--blue); }
 .assurance { display: flex; gap: 10px; align-items: flex-start; color: var(--ink-2); font-size: 12.5px; margin-top: 14px; }
 .assurance svg { color: var(--ok); flex: none; margin-top: 3px; }
 .assurance b { margin-right: 6px; }
+.journey > .assurance { margin: 0 0 16px; }
 .page-foot { display: flex; justify-content: space-between; align-items: center; color: var(--ink-3); font-size: 12px; margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--rule); }
 
 /* Register fields: a box with its label set into the top border, like an inspection certificate */

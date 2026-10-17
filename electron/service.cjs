@@ -7,7 +7,7 @@ const profile = require("./profile.cjs");
 const garage = require('./garage.cjs');
 const progression = require('./progression.cjs');
 const { CatalogStore, digest } = require('./catalog.cjs');
-const { readResources } = require('./resources.cjs');
+const { readResources, decode } = require('./resources.cjs');
 const { ArtworkStore } = require('./artwork.cjs');
 const tuning = require('./tuning.cjs');
 const { TuneLibrary } = require('./tunelib.cjs');
@@ -42,6 +42,7 @@ class Service {
     this.busy = false;
     this.catalogs = new CatalogStore(dataDir);
     this.artwork = new ArtworkStore(dataDir);
+    this.version = version;
     this.library = new TuneLibrary(dataDir);
     this.community = new Community({ dataDir, version, ...(fetcher ? { fetcher } : {}) });
     this.syncSettings = { gamePath:'', autoSync:false, allowOnline:false, autoDetected:false, resourceStamp:'' };
@@ -274,6 +275,25 @@ class Service {
   async libraryRemove(id) { return this.exclusive(async () => { await this.library.remove(id); return this.library.list(); }); }
   async libraryImport(file) { return this.exclusive(async () => { this.checkPath(file); const r = await this.library.importFile(file); return { ...r, items: this.library.list() }; }); }
   async libraryExport(file, ids) { this.checkPath(file); const pack = this.library.pack(ids); await fs.writeFile(file, JSON.stringify(pack, null, 2)); return { file, count: pack.items.length }; }
+  // Structure-only report for support: the playlist, journal and wristband states plus journal point totals.
+  // It leaves out the owner XUID, garage, file paths and every other part of the save.
+  diagnostics() {
+    const s = this.requireSession(), b = s.plain, parsed = profile.parse(b), hex = (n) => '0x' + n.toString(16).padStart(8, '0');
+    const state = (type) => { const st = parsed.states.find((x) => x.type === type); return st ? { schema: hex(st.schema), size: st.end - st.start, base64: b.subarray(st.start, st.end).toString('base64') } : null; };
+    let buckets = {};
+    try {
+      const section = parsed.sections.find((x) => x.tag === 0xb60261fc);
+      (function walk(n) { if (n.tag === 'map_element') { const key = n.children.find((c) => c.tag === 'key')?.a.value || ''; if (/^CurrencyBucket_.*(Collection|Discovery|Festival)/.test(key)) buckets[key] = n.children.find((c) => c.tag === 'value')?.children.find((c) => c.a.id === 'Total')?.a.value ?? null; } n.children.forEach(walk); })(decode(b.subarray(section.start, section.end)));
+    } catch (e) { buckets = { error: e.message }; }
+    const { fingerprint, ...catalog } = this.catalogs.summary();
+    return {
+      format: 'festival-diagnostics', version: 1, created: new Date().toISOString(), app: this.version, catalog,
+      save: { encrypted: s.encrypted, size: b.length, sections: parsed.sections.map((x) => ({ tag: hex(x.tag), size: x.size })), states: parsed.states.map((x) => ({ index: x.i, type: x.type, base: x.base, schema: hex(x.schema), size: x.end - x.start })) },
+      status: { seasons: s.seasonError || 'ok', garage: s.garageError || 'ok', journal: s.journey?.collectionError || 'ok', wristbands: s.journey?.wristbandError || 'ok', tuning: s.tuningError || 'ok', journalItems: s.journey?.unknownItems || null },
+      states: { FestivalPassSaveState: state('FestivalPassSaveState'), CollectionCampaignSaveState: state('CollectionCampaignSaveState'), PlayerWristbandSaveState: state('PlayerWristbandSaveState') },
+      buckets,
+    };
+  }
   communitySearch(car) { return this.community.search(car); }
   communityTunes(slug) { return this.community.tunes(slug); }
   async backups() {

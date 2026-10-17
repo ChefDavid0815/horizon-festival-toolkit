@@ -207,7 +207,9 @@ function festival(b, catalog = seasons) {
   assert(state, "未找到季节赛状态");
   if (b.readUInt32LE(state.start) !== 4 || state.schema !== 0x6efc7e34)
     throw Error("此季节赛存档版本尚未适配；未修改文件。");
-  const matches = [];
+  // A candidate must parse completely, re-encode byte for byte and agree on series IDs across all four
+  // blocks. Catalog point totals then confirm it; series the catalog does not know yet are left unchecked.
+  const structural = [], matches = [], mismatched = [];
   for (
     let offset = state.start + 4;
     offset < Math.min(state.end - 100, state.start + 65536);
@@ -258,32 +260,19 @@ function festival(b, catalog = seasons) {
       const eventStart = r.p,
         events = readEvents(r);
       assert.equal(events.length, n);
-      assert(events.some((s) => s.weeks.some((w) => w.types.length > 3)));
       assert(b.subarray(eventStart, r.p).equals(encodeEvents(events)));
       assert.deepEqual(events.map(s=>s.id).sort((a,b)=>a-b), totals.map(s=>s.id).sort((a,b)=>a-b));
+      const candidate = { state, totals, weekPoints, max, eventStart, eventEnd: r.p, events };
+      structural.push(candidate);
       const known = max.filter((m) => catalog.weeks.filter(w=>w.series===m.id).length === 4);
-      assert(known.length);
-      for (const m of known)
-        assert.equal(
-          m.points,
-          catalog.weeks
-            .filter((w) => w.series === m.id)
-            .reduce((a, w) => a + w.maxPoints, 0),
-        );
-      matches.push({
-        state,
-        totals,
-        weekPoints,
-        max,
-        eventStart,
-        eventEnd: r.p,
-        events,
-      });
+      const agrees = known.every((m) => m.points === catalog.weeks.filter((w) => w.series === m.id).reduce((a, w) => a + w.maxPoints, 0));
+      (agrees ? matches : mismatched).push(candidate);
     } catch {}
   }
-  if (matches.length !== 1)
-    throw Error("无法唯一识别季节赛布局，请保留原存档。");
-  return matches[0];
+  if (matches.length === 1) return matches[0];
+  if (matches.length > 1) throw Error("存档中有多个可能的季节赛位置，已停止季节赛编辑以免误写。");
+  if (mismatched.length) throw Error("存档中的季节赛积分与内容目录不一致，请在“更新中心”同步游戏内容后重新连接。");
+  throw Error("未能在存档中定位季节赛数据，已停止季节赛编辑。可在“使用说明”中导出诊断信息反馈。");
 }
 function weekRecords(f, s, w) {
   return f.events.find((e) => e.id === s)?.weeks.find((e) => e.week === w);

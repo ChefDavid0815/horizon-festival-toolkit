@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld("festival", {
   communityTunes: (slug) => invoke("communityTunes", slug),
   openCommunity: (url) => invoke("openCommunity", url),
   copyShareCode: (code) => invoke("copyShareCode", code),
+  exportDiagnostics: () => invoke("exportDiagnostics"),
   onProgress: (fn) => {
     const cb = (_e, data) => fn(data);
     ipcRenderer.on("progress", cb);

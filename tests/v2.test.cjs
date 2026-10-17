@@ -10,7 +10,7 @@ const {CatalogStore,validatePack}=require('../electron/catalog.cjs');
 const {Service}=require('../electron/service.cjs');
 const samplePath=path.resolve(__dirname,'../qa/cli-roundtrip.bin');
 const sample=fs.existsSync(samplePath)?fs.readFileSync(samplePath):null;
-const pack=()=>({format:'festival-catalog',version:2,resourceBuild:'test-S6',seasons:{...p.seasons,weeks:p.seasons.weeks.filter(w=>w.series===5).map(w=>({...structuredClone(w),key:`6:${w.week}`,series:6,title:'SERIES SIX'}))}});
+const pack=()=>({format:'festival-catalog',version:2,resourceBuild:'test-S7',seasons:{...p.seasons,weeks:p.seasons.weeks.filter(w=>w.series===5).map(w=>({...structuredClone(w),key:`7:${w.week}`,series:7,title:'SERIES SIX'}))}});
 test('content packs validate schema, IDs, points and stock parts',()=>{
   validatePack(pack());
   const bad=pack();bad.seasons.weeks[0].maxPoints++;assert.throws(()=>validatePack(bad));
@@ -18,10 +18,10 @@ test('content packs validate schema, IDs, points and stock parts',()=>{
   const unknown=pack();unknown.seasons.weeks[0].events[0].type=39;assert.throws(()=>validatePack(unknown));
   assert.throws(()=>validatePack({format:'festival-catalog',version:2,resourceBuild:'x',cars:{cars:[{id:1,name:'test',make:'test',media:'x',year:2026,pi:1}]}}));
 });
-test('S6 content merges without losing history and survives a restart',async()=>{
+test('S7 content merges without losing history and survives a restart',async()=>{
   const dir=await fsp.mkdtemp(path.join(os.tmpdir(),'festival-test-catalog-'));
   const store=new CatalogStore(dir);await store.init();await store.commit(store.preview(pack(),'import'));
-  assert.equal(store.seasons.weeks.length,24);assert.deepEqual(store.summary().series,[1,2,3,4,5,6]);
+  assert.equal(store.seasons.weeks.length,28);assert.deepEqual(store.summary().series,[1,2,3,4,5,6,7]);
   const reloaded=new CatalogStore(dir);await reloaded.init();assert.deepEqual(reloaded.pack,store.pack);
   const before=await fsp.readFile(store.file);assert.throws(()=>store.preview({...pack(),version:900},'import'));assert((await fsp.readFile(store.file)).equals(before));
 });
@@ -47,27 +47,27 @@ test('a newly imported car definition is usable without changing application cod
   const cars={...g.catalog,cars:[...g.catalog.cars,c]};validatePack({format:'festival-catalog',version:2,resourceBuild:'fixture-only',cars});
   const result=await g.patchGarage(sample,{cars:[{id:c.id,quantity:1}]},cars);assert.equal((await g.inspectGarage(result.buffer,cars)).counts[c.id],1);
 });
-// Transform the existing QA fixture's S5 into S6, including its statistics keys.
+// Transform the existing QA fixture's S5 into S7, including its statistics keys.
 // This simulates a future series; it is not a genuine unreleased game save.
 function futureFixture(input){
   const out=Buffer.from(input),f=p.festival(out),ids=f.totals.map(t=>t.id);
-  for(const t of f.totals)if(t.id===5)out.writeUInt32LE(6,t.pos-4);
-  const first=f.weekPoints.find(w=>w.id===5);out.writeUInt32LE(6,first.pos-12);
+  for(const t of f.totals)if(t.id===5)out.writeUInt32LE(7,t.pos-4);
+  const first=f.weekPoints.find(w=>w.id===5);out.writeUInt32LE(7,first.pos-12);
   let offset=f.weekPoints.at(-1).pos+4;assert.equal(out.readUInt32LE(offset),ids.length);offset+=4;
-  for(let i=0;i<ids.length;i++){if(out.readUInt32LE(offset)===5)out.writeUInt32LE(6,offset);const count=out.readUInt32LE(offset+16);offset+=20+count*8;}
-  for(const s of f.events)if(s.id===5)s.id=6;
-  const stats=p.parse(out).states.find(s=>s.type==='Stats'),key=Buffer.alloc(8);key.writeBigUInt64LE(p.fnv('5'));for(let i=stats.start;i<stats.end-8;i++)if(out.subarray(i,i+8).equals(key))out.writeBigUInt64LE(p.fnv('6'),i);
+  for(let i=0;i<ids.length;i++){if(out.readUInt32LE(offset)===5)out.writeUInt32LE(7,offset);const count=out.readUInt32LE(offset+16);offset+=20+count*8;}
+  for(const s of f.events)if(s.id===5)s.id=7;
+  const stats=p.parse(out).states.find(s=>s.type==='Stats'),key=Buffer.alloc(8);key.writeBigUInt64LE(p.fnv('5'));for(let i=stats.start;i<stats.end-8;i++)if(out.subarray(i,i+8).equals(key))out.writeBigUInt64LE(p.fnv('7'),i);
   return p.replaceState(out,'FestivalPassSaveState',Buffer.concat([out.subarray(f.state.start,f.eventStart),p.encodeEvents(f.events),out.subarray(f.eventEnd,f.state.end)]));
 }
-test('new S6 series can be inspected and edited from external catalog data',{skip:!sample},()=>{
+test('new S7 series can be inspected and edited from external catalog data',{skip:!sample},()=>{
   const future=futureFixture(sample),catalog={...p.seasons,weeks:[...p.seasons.weeks,...pack().seasons.weeks]};
-  const before=p.inspectSeasons(future,catalog);assert(before.find(w=>w.key==='6:0').available);assert(!before.find(w=>w.key==='5:0').available);
-  const out=p.patchSeasons(future,['6:0','6:1','6:2','6:3'],catalog);assert(p.inspectSeasons(out.buffer,catalog).filter(w=>w.series===6).every(w=>w.complete));
+  const before=p.inspectSeasons(future,catalog);assert(before.find(w=>w.key==='7:0').available);assert(!before.find(w=>w.key==='5:0').available);
+  const out=p.patchSeasons(future,['7:0','7:1','7:2','7:3'],catalog);assert(p.inspectSeasons(out.buffer,catalog).filter(w=>w.series===7).every(w=>w.complete));
   const a=p.parse(future),b=p.parse(out.buffer);assert(future.subarray(a.database.start,a.database.end).equals(out.buffer.subarray(b.database.start,b.database.end)));
 });
 test('a catalog update does not invent series absent from a player save',{skip:!sample},()=>{
   const catalog={...p.seasons,weeks:[...p.seasons.weeks,...pack().seasons.weeks]};
-  assert(p.inspectSeasons(sample,catalog).filter(w=>w.series===6).every(w=>!w.available));assert.throws(()=>p.patchSeasons(sample,['6:0'],catalog),/尚未存在/);
+  assert(p.inspectSeasons(sample,catalog).filter(w=>w.series===7).every(w=>!w.available));assert.throws(()=>p.patchSeasons(sample,['7:0'],catalog),/尚未存在/);
 });
 test('garage remains usable when the playlist schema is unsupported',{skip:!sample},async()=>{
   const b=Buffer.from(sample),state=p.parse(b).states.find(s=>s.type==='FestivalPassSaveState');b.writeUInt32LE(99,state.start);

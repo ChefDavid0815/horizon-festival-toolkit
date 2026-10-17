@@ -1,5 +1,17 @@
 # Verification / 验证说明
 
+## V0.4.1 · 2026-10-18
+
+- Core tests: **49/49** passed. Four new tests cover a playlist with at most three activity kinds per week, the three playlist error cases, a journal with category points records removed (read, record created on write, no duplicate on a second write, every other bucket and save state unchanged), and journal entries added or revised by a game update.
+- The reported errors were reproduced exactly on modified copies of the QA save before the fix ("无法唯一识别季节赛布局" and "此收藏手册存档结构尚未适配").
+- Developer's real save of 17 October 2026, decrypted copy:
+  - the playlist resolves to the same location as 0.4.0, with 24 weeks (S1–S6) readable;
+  - 0.4.0 stops journal editing on this save, while 0.4.1 reads 2,855 records: 2,833 known, 22 added by the game update and 2 revised;
+  - a test write added photography +100 and car collection +5, kept every new record byte for byte, and left all other save states unchanged.
+- The diagnostics export was checked for the owner XUID in decimal, hexadecimal and raw byte form; none is present.
+
+Packaged installer, installed app and portable checks are recorded in the release asset `VERIFICATION-0.4.1.json`.
+
 ## V0.4.0 · 2026-10-16
 
 - Core tests: **45/45** passed.

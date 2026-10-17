@@ -8,7 +8,7 @@ const { fnv, sha } = require('./profile.cjs');
 const { validatePack } = require('./catalog.cjs');
 const { XMLParser } = require('fast-xml-parser');
 const types = {SeasonalEvent:0,Trial:1,PRStunt:2,ForzathonDaily:4,ForzathonWeekly:5,MonthlyRival:6,PhotoChallenge:9,TreasureChest:10,HorizonOpen:12,Eliminator:13,Collectibles:14,StuntParty:15,HideSeek:17,SeasonalJob:18,HorizonLifeEvent:22};
-const names = ['','WELCOME TO JAPAN','HORIZON DECADES','ITALIAN EXOTICS','MASCOT PARTY','BRITISH AUTOMOTIVE'];
+const names = ['','WELCOME TO JAPAN','HORIZON DECADES','ITALIAN EXOTICS','MASCOT PARTY','BRITISH AUTOMOTIVE','HORIZON MEETS'];
 const seasons = ['Summer','Autumn','Winter','Spring'];
 const cn = ['夏季','秋季','冬季','春季'];
 // BXML v2 framing described by Nenkai/ForzaTools (MIT); strict bounded reader.

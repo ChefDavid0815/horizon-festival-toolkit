@@ -87,6 +87,7 @@ app.whenReady().then(async () => {
   handle('libraryRemove', id=>service.libraryRemove(id));
   handle('libraryImport', async()=>{const r=await dialog.showOpenDialog(win,{properties:['openFile'],filters:[{name:'Festival tune pack',extensions:['json']}]});return r.canceled?null:service.libraryImport(r.filePaths[0]);});
   handle('libraryExport', async ids=>{if(ids!==undefined&&(!Array.isArray(ids)||ids.length>2000||!ids.every(id=>typeof id==='string')))throw Error('导出请求无效');const r=await dialog.showSaveDialog(win,{defaultPath:'festival-tunes.json',filters:[{name:'Festival tune pack',extensions:['json']}]});return r.canceled?null:service.libraryExport(r.filePath,ids);});
+  handle('exportDiagnostics', async()=>{const data=service.diagnostics();const r=await dialog.showSaveDialog(win,{defaultPath:`festival-diagnostics-${new Date().toISOString().slice(0,10)}.json`,filters:[{name:'Festival diagnostics',extensions:['json']}]});if(r.canceled)return null;service.checkPath(r.filePath);await require('node:fs/promises').writeFile(r.filePath,JSON.stringify(data,null,2));return r.filePath;});
   handle('communitySearch', car=>service.communitySearch(car));
   handle('communityTunes', slug=>service.communityTunes(slug));
   handle('copyShareCode', code=>{if(typeof code!=='string'||!/^\d{9,11}$/.test(code))throw Error('分享码无效');clipboard.writeText(code);return true;});
