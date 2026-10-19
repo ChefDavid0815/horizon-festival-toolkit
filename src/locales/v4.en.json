@@ -411,5 +411,8 @@
   "修复收藏手册在缺少分类积分记录或含有游戏更新新增项目时停止编辑；新项目原样保留，修订项目只读。": "Fixed journal editing stopping when a category had no points record yet or the save held entries from a game update; new entries are kept as they are and revised ones are read-only.",
   "完成缺少积分记录的分类时自动补建记录，并逐项回读核对。": "Completing an entry in a category without a points record now creates that record and verifies it on read-back.",
   "内置第 6 季 Horizon Meets（地平线车聚）的季节赛与奖励。": "Series 6 Horizon Meets playlist and rewards are now built in.",
-  "新增“导出诊断信息”，只含季节赛、收藏手册与腕带结构，不含玩家编号与车库。": "New Export diagnostics: playlist, journal and wristband structure only, with no player ID or garage."
+  "新增“导出诊断信息”，只含季节赛、收藏手册与腕带结构，不含玩家编号与车库。": "New Export diagnostics: playlist, journal and wristband structure only, with no player ID or garage.",
+  "只玩过几季，也能读。": "Reads saves that skipped a series.",
+  "修复只参加过部分系列赛的存档提示“未能在存档中定位季节赛数据”。": "Fixed the playlist reporting that its data could not be located on saves that have entered only some series.",
+  "没有参加过的系列赛显示为“此存档尚未记录”，不可写入；已参加的系列赛照常编辑。": "Series the save has never entered show as not recorded yet and cannot be written; entered series edit as before."
 }

@@ -1,10 +1,10 @@
-<a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.1"><img src="docs/assets/cover-v0.4.0.png" width="100%" alt="Festival Toolkit 0.4 封面：每一套调校，都有出处。朱印、标出待写入调校的调校表与季节赛奖励车辆。" /></a>
+<a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.2"><img src="docs/assets/cover-v0.4.0.png" width="100%" alt="Festival Toolkit 0.4 封面：每一套调校，都有出处。朱印、标出待写入调校的调校表与季节赛奖励车辆。" /></a>
 
 <p align="center"><a href="README.md">English</a> · <b>简体中文</b></p>
 
-<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.1"><b>下载 0.4.1 ↓</b></a> &nbsp; / &nbsp; <a href="docs/RELEASE-0.4.0.md">0.4 说明 ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">版本记录 ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">展柜 ↗</a></p>
+<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.2"><b>下载 0.4.2 ↓</b></a> &nbsp; / &nbsp; <a href="docs/RELEASE-0.4.0.md">0.4 说明 ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">版本记录 ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">展柜 ↗</a></p>
 
-# Horizon Festival Toolkit · V0.4.1
+# Horizon Festival Toolkit · V0.4.2
 
 地平线 6 本地存档工坊。读取你自己存档里的车辆调校与改装、每个部件的实际成交价、季节赛与奖励车辆、收藏手册、腕带和车库。改什么由你决定；工具会先备份、校验，再写回。
 
@@ -14,15 +14,15 @@
 
 ## 下载
 
-**[Windows x64 · 0.4.1](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.1)**：安装版、免安装版、SHA-256 校验和验证报告。
+**[Windows x64 · 0.4.2](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.2)**：安装版、免安装版、SHA-256 校验和验证报告。
 
-- [Horizon-Festival-Toolkit-0.4.1-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.1/Horizon-Festival-Toolkit-0.4.1-Setup.exe)
-- [Horizon-Festival-Toolkit-0.4.1-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.1/Horizon-Festival-Toolkit-0.4.1-Portable.exe)
-- [SHA256SUMS-0.4.1.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.1/SHA256SUMS-0.4.1.txt)
+- [Horizon-Festival-Toolkit-0.4.2-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.2/Horizon-Festival-Toolkit-0.4.2-Setup.exe)
+- [Horizon-Festival-Toolkit-0.4.2-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.2/Horizon-Festival-Toolkit-0.4.2-Portable.exe)
+- [SHA256SUMS-0.4.2.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.2/SHA256SUMS-0.4.2.txt)
 
 安装包未签名，Windows SmartScreen 可能会要求确认。连接存档前请先退出游戏。
 
-**0.4.1** 修复了进度较少、或含有 10 月 5 日更新新增收藏项目的存档中，季节赛与收藏手册停止编辑的问题；内置第 6 季 Horizon Meets；新增“导出诊断信息”。详见 [0.4.1 说明](docs/RELEASE-0.4.1.md)。
+**0.4.2** 修复了只参加过部分系列赛的存档提示“未能在存档中定位季节赛数据”的问题。详见 [0.4.2 说明](docs/RELEASE-0.4.2.md)；0.4.1 的改动见 [0.4.1 说明](docs/RELEASE-0.4.1.md)。
 
 ## 调校工坊
 
@@ -103,9 +103,9 @@ npm start
 
 ## 验证与边界
 
-- `npm test` 共 49 项，覆盖存档、车库、调校、调校库、社区解析、奖励、自动同步、目录、备份与语言偏好。
+- `npm test` 共 52 项，覆盖存档、车库、调校、调校库、社区解析、奖励、自动同步、目录、备份与语言偏好。
 - `npm run verify:desktop` 与 `verify:journey` 在真实应用中用私人存档副本完整跑通，包括调校与改装写入。私人样本不会公开。
-- 详见 [验证记录](docs/VERIFICATION.md) 和发布页的 `VERIFICATION-0.4.1.json`。
+- 详见 [验证记录](docs/VERIFICATION.md) 和发布页的 `VERIFICATION-0.4.2.json`。
 
 其他说明：
 

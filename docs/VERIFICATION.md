@@ -1,5 +1,11 @@
 # Verification / 验证说明
 
+## V0.4.2 · 2026-10-19
+
+- Core tests: **52** in total. Three new tests build synthetic saves and need no private sample: the reported playlist layout (5 totals, 3 week-point series, 7 maximums, with a totals tail that also reads as a list) resolves to a single location; a series never entered is refused, a one-week write leaves every other week and series unchanged and repeats byte for byte; the older equal-length layout still reads and writes. The first two fail on the 0.4.1 code with "未能在存档中定位季节赛数据".
+- Player diagnostics of 18 October 2026: the playlist state, wrapped in a minimal save container, reproduces the 0.4.1 error and resolves once under 0.4.2; 8 weeks (S1, S6) are readable and a two-week S6 write verifies and repeats byte for byte.
+- In this change's environment the private QA save was not available, so `tests/profile.test.cjs` and `tests/progression.test.cjs` did not run; all other files passed. Run the full suite and desktop checks against the QA save before publishing; packaged results go in the release asset `VERIFICATION-0.4.2.json`.
+
 ## V0.4.1 · 2026-10-18
 
 - Core tests: **49/49** passed. Four new tests cover a playlist with at most three activity kinds per week, the three playlist error cases, a journal with category points records removed (read, record created on write, no duplicate on a second write, every other bucket and save state unchanged), and journal entries added or revised by a game update.

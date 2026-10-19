@@ -212,7 +212,7 @@ export default function App() {
               <ChevronRight size={16} />
             </button>
             <label className="rail-language"><Languages size={16} /><select aria-label="Language / 语言" value={state?.language?.preference || "system"} onChange={(e) => changeLanguage(e.target.value)} disabled={!state || busy || languageSaving}><option value="system">{t("跟随系统")}</option><option value="zh">简体中文</option><option value="en">English</option></select></label>
-            <div className="rail-meta"><span>Windows · V{state?.version || "0.4.1"}</span><button onClick={() => setInfo(true)}><Info size={14} />{t("使用说明")}</button></div>
+            <div className="rail-meta"><span>Windows · V{state?.version || "0.4.2"}</span><button onClick={() => setInfo(true)}><Info size={14} />{t("使用说明")}</button></div>
           </div>
         </aside>
         <div className="workspace">
