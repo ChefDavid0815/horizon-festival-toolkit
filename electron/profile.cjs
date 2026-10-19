@@ -207,8 +207,12 @@ function festival(b, catalog = seasons) {
   assert(state, "未找到季节赛状态");
   if (b.readUInt32LE(state.start) !== 4 || state.schema !== 0x6efc7e34)
     throw Error("此季节赛存档版本尚未适配；未修改文件。");
-  // A candidate must parse completely, re-encode byte for byte and agree on series IDs across all four
-  // blocks. Catalog point totals then confirm it; series the catalog does not know yet are left unchecked.
+  // A candidate must parse completely and re-encode byte for byte. Catalog point totals then confirm it;
+  // series the catalog does not know yet are left unchecked. Totals, week points and maximums are separate
+  // lists keyed by series ID: a save only records totals and weeks for series the player has entered, so
+  // their lengths can differ. Every ID must appear among the maximums, every series with week points needs
+  // a total (this also rejects a tail of the totals list read as a shorter list), and the series with week
+  // points must be exactly the series with event records.
   const structural = [], matches = [], mismatched = [];
   for (
     let offset = state.start + 4;
@@ -229,24 +233,26 @@ function festival(b, catalog = seasons) {
         totals.push({ id, pos, value });
       }
       assert(new Set(totals.map((t) => t.id)).size === n);
-      assert.equal(r.count(512), n);
-      const weekPoints = [];
-      for (let i = 0; i < n; i++) {
-        const id = r.u32();
-        assert.equal(id, totals[i].id);
+      const weekPoints = [], weekSeries = [];
+      for (let i = r.count(512); i; i--) {
+        const id = r.u32(), weeks = [];
+        assert(id < 10000);
+        weekSeries.push(id);
         for (let j = r.count(4); j; j--) {
           const week = r.u32(),
             pos = r.p,
             value = r.u32();
           assert(week < 4 && value < 1000);
+          weeks.push(week);
           weekPoints.push({ id, week, pos, value });
         }
+        assert(new Set(weeks).size === weeks.length);
       }
-      assert.equal(r.count(512), n);
+      assert(new Set(weekSeries).size === weekSeries.length);
       const max = [];
-      for (let i = 0; i < n; i++) {
+      for (let i = r.count(512); i; i--) {
         const id = r.u32();
-        assert.equal(id, totals[i].id);
+        assert(id < 10000);
         r.u64();
         const points = r.u32();
         assert(points < 10000);
@@ -256,16 +262,19 @@ function festival(b, catalog = seasons) {
           r.u32();
         }
       }
+      const known = new Set(max.map((m) => m.id));
+      assert(known.size === max.length);
+      assert(totals.every((t) => known.has(t.id)));
+      assert(weekSeries.every((id) => totals.some((t) => t.id === id)));
       r.u32();
       const eventStart = r.p,
         events = readEvents(r);
-      assert.equal(events.length, n);
       assert(b.subarray(eventStart, r.p).equals(encodeEvents(events)));
-      assert.deepEqual(events.map(s=>s.id).sort((a,b)=>a-b), totals.map(s=>s.id).sort((a,b)=>a-b));
+      assert.deepEqual(events.map(s=>s.id).sort((a,b)=>a-b), [...weekSeries].sort((a,b)=>a-b));
       const candidate = { state, totals, weekPoints, max, eventStart, eventEnd: r.p, events };
       structural.push(candidate);
-      const known = max.filter((m) => catalog.weeks.filter(w=>w.series===m.id).length === 4);
-      const agrees = known.every((m) => m.points === catalog.weeks.filter((w) => w.series === m.id).reduce((a, w) => a + w.maxPoints, 0));
+      const listed = max.filter((m) => catalog.weeks.filter(w=>w.series===m.id).length === 4);
+      const agrees = listed.every((m) => m.points === catalog.weeks.filter((w) => w.series === m.id).reduce((a, w) => a + w.maxPoints, 0));
       (agrees ? matches : mismatched).push(candidate);
     } catch {}
   }
@@ -301,7 +310,9 @@ function inspectSeasons(b, catalog = seasons) {
     )?.value;
     return {
       ...w,
-      available: !!stored && points !== undefined,
+      // Weeks of a series the player never entered have no records to complete.
+      available:
+        !!stored && points !== undefined && f.totals.some((t) => t.id === w.series),
       points: points ?? 0,
       completed,
       total: w.events.length,

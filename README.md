@@ -1,10 +1,10 @@
-<a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.1"><img src="docs/assets/cover-v0.4.0.png" width="100%" alt="Festival Toolkit 0.4 — Every tune has a source. Vehicle-register cover with a vermilion seal, a setup sheet showing staged tuning changes, and playlist reward cars." /></a>
+<a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.2"><img src="docs/assets/cover-v0.4.0.png" width="100%" alt="Festival Toolkit 0.4 — Every tune has a source. Vehicle-register cover with a vermilion seal, a setup sheet showing staged tuning changes, and playlist reward cars." /></a>
 
 <p align="center"><b>English</b> · <a href="README.zh-CN.md">简体中文</a></p>
 
-<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.1"><b>DOWNLOAD 0.4.1 ↓</b></a> &nbsp; / &nbsp; <a href="docs/RELEASE-0.4.0.md">0.4 GUIDE ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">CHANGELOG ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">EXHIBITION ↗</a></p>
+<p align="center"><a href="https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.2"><b>DOWNLOAD 0.4.2 ↓</b></a> &nbsp; / &nbsp; <a href="docs/RELEASE-0.4.0.md">0.4 GUIDE ↗</a> &nbsp; / &nbsp; <a href="CHANGELOG.md">CHANGELOG ↗</a> &nbsp; / &nbsp; <a href="https://chefzc-homepage.vercel.app/gallery.html#project-festival-toolkit">EXHIBITION ↗</a></p>
 
-# Horizon Festival Toolkit · V0.4.1
+# Horizon Festival Toolkit · V0.4.2
 
 A Windows workshop for your own Forza Horizon 6 save. It reads every car's tune and upgrades, the CR you actually paid for each part, playlist weeks and their reward cars, journals, wristbands and the garage. You choose what to change; the toolkit backs up the save, checks the result and writes it back.
 
@@ -14,15 +14,15 @@ A Windows workshop for your own Forza Horizon 6 save. It reads every car's tune 
 
 ## Download
 
-**[Windows x64 · 0.4.1](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.1)** — installer, portable app, SHA-256 checksums and the verification report:
+**[Windows x64 · 0.4.2](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/tag/v0.4.2)** — installer, portable app, SHA-256 checksums and the verification report:
 
-- [Horizon-Festival-Toolkit-0.4.1-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.1/Horizon-Festival-Toolkit-0.4.1-Setup.exe)
-- [Horizon-Festival-Toolkit-0.4.1-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.1/Horizon-Festival-Toolkit-0.4.1-Portable.exe)
-- [SHA256SUMS-0.4.1.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.1/SHA256SUMS-0.4.1.txt)
+- [Horizon-Festival-Toolkit-0.4.2-Setup.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.2/Horizon-Festival-Toolkit-0.4.2-Setup.exe)
+- [Horizon-Festival-Toolkit-0.4.2-Portable.exe](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.2/Horizon-Festival-Toolkit-0.4.2-Portable.exe)
+- [SHA256SUMS-0.4.2.txt](https://github.com/ChefDavid0815/horizon-festival-toolkit/releases/download/v0.4.2/SHA256SUMS-0.4.2.txt)
 
 The binaries are unsigned, so Windows SmartScreen may ask for confirmation. Quit the game before connecting a save.
 
-**0.4.1** fixes the playlist and journal stopping on saves with less progress or with journal entries from the 5 October game update, builds in Series 6 Horizon Meets, and adds **Export diagnostics**. See the [0.4.1 notes](docs/RELEASE-0.4.1.md).
+**0.4.2** fixes the playlist reporting that its data could not be located on saves that have entered only some series. See the [0.4.2 notes](docs/RELEASE-0.4.2.md); 0.4.1 changes are in the [0.4.1 notes](docs/RELEASE-0.4.1.md).
 
 ## Tuning workshop
 
@@ -48,7 +48,7 @@ The binaries are unsigned, so Windows SmartScreen may ask for confirmation. Quit
 
 - **Follows game updates.** With no folder set, the toolkit finds the Steam or Xbox install by itself and checks the game resources every minute while it is open. When an update replaces them, new series, weeks, events and rewards are read in. A game that is still downloading is simply waited for.
 - **Reward cars.** Each week's point rewards, the series-total rewards and event rewards come from the game resources. Thresholds sit on each meter and turn green once reached, and cars you own carry a check mark. **Add missing** stages the reward cars you don't have for the garage.
-- Choose a week, a whole series or everything, and write completion records and points together. A new series must exist in your save first: open it once in game, quit, then reconnect.
+- Choose a week, a whole series or everything, and write completion records and points together. A series must exist in your save first: weeks of a series you have never entered show as **Not in this save yet** and cannot be written. Open it once in game, quit, then reconnect.
 
 <details><summary><b>Reward cars for the whole series</b></summary>
 
@@ -97,7 +97,7 @@ Install and verify the upstream tool as described in [tools/README.md](tools/REA
 
 ## Verification and boundaries
 
-`npm test` runs 49 tests. They cover the save, garage, tuning, library, community parsing, rewards, live sync, catalog, backups and preferences. `npm run verify:desktop` and `npm run verify:journey` drive the real app against a private save copy, and include tuning and build writes end to end. That copy is never published. Details are in [VERIFICATION.md](docs/VERIFICATION.md) and the release's `VERIFICATION-0.4.1.json`.
+`npm test` runs 52 tests. They cover the save, garage, tuning, library, community parsing, rewards, live sync, catalog, backups and preferences. `npm run verify:desktop` and `npm run verify:journey` drive the real app against a private save copy, and include tuning and build writes end to end. That copy is never published. Details are in [VERIFICATION.md](docs/VERIFICATION.md) and the release's `VERIFICATION-0.4.2.json`.
 
 - Encrypted **player saves** go through the bundled [ForzaCryptoTool](https://github.com/DVS-code/Forza-Crypto-Tool), which uploads the selected save to `forzamods.dev`; the connection dialog says so. Optional online decryption of the **game's** car database sends `gamedbRC.slt` to the same service.
 - Community lookups request public codmunity.gg pages only when you open that tab.

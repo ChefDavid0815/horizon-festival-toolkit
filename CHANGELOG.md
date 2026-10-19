@@ -1,6 +1,11 @@
 # Changelog / 版本记录
 
-## 0.4.1 · 2026-10-18 · Current / 当前版本
+## 0.4.2 · 2026-10-19 · Current / 当前版本
+
+- Playlist: saves that have entered only some series are located again. The game keeps points totals and week records only for series the player has entered, while maximums cover every series, so the three lists can differ in length; 0.4.1 required them to match and stopped with "playlist data could not be located". Series the save has never entered show as "Not in this save yet" and cannot be written. / 只参加过部分系列赛的存档不再提示“未能在存档中定位季节赛数据”；未参加过的系列赛显示为尚未记录，不可写入。
+- See [0.4.2 notes](docs/RELEASE-0.4.2.md).
+
+## 0.4.1 · 2026-10-18 · Previous / 历史版本
 
 - Playlist: located by complete parsing and byte-exact re-encoding instead of requiring a week with more than three activity kinds, so saves with little playlist history read correctly; errors now say whether the data was not found, ambiguous or inconsistent with the catalog. / 季节赛不再要求某周有 4 种以上活动，进度少的存档也能识别；报错说明具体原因。
 - Journal: a category with no points record yet reads as 0 and gets its record created on write; entries added by a game update are read by their framing and kept byte for byte; entries revised by an update are shown read-only. / 收藏手册缺少积分记录、含新项目或修订项目时都能正常读写。
