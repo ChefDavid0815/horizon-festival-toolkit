@@ -414,5 +414,5 @@
   "新增“导出诊断信息”，只含季节赛、收藏手册与腕带结构，不含玩家编号与车库。": "New Export diagnostics: playlist, journal and wristband structure only, with no player ID or garage.",
   "只玩过几季，也能读。": "Reads saves that skipped a series.",
   "修复只参加过部分系列赛的存档提示“未能在存档中定位季节赛数据”。": "Fixed the playlist reporting that its data could not be located on saves that have entered only some series.",
-  "没有参加过的系列赛显示为“此存档尚未记录”，不可写入；已参加的系列赛照常编辑。": "Series the save has never entered show as not recorded yet and cannot be written; entered series edit as before."
+  "没有参加过的系列赛显示为“此存档尚未记录”，不可写入；已参加的系列赛照常编辑。": "Series the save has never entered show as Not in this save yet and cannot be written; entered series edit as before."
 }

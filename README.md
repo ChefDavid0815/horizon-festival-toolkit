@@ -48,7 +48,7 @@ The binaries are unsigned, so Windows SmartScreen may ask for confirmation. Quit
 
 - **Follows game updates.** With no folder set, the toolkit finds the Steam or Xbox install by itself and checks the game resources every minute while it is open. When an update replaces them, new series, weeks, events and rewards are read in. A game that is still downloading is simply waited for.
 - **Reward cars.** Each week's point rewards, the series-total rewards and event rewards come from the game resources. Thresholds sit on each meter and turn green once reached, and cars you own carry a check mark. **Add missing** stages the reward cars you don't have for the garage.
-- Choose a week, a whole series or everything, and write completion records and points together. A new series must exist in your save first: open it once in game, quit, then reconnect.
+- Choose a week, a whole series or everything, and write completion records and points together. A series must exist in your save first: weeks of a series you have never entered show as **Not in this save yet** and cannot be written. Open it once in game, quit, then reconnect.
 
 <details><summary><b>Reward cars for the whole series</b></summary>
 

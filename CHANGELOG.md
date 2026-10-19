@@ -2,7 +2,7 @@
 
 ## 0.4.2 · 2026-10-19 · Current / 当前版本
 
-- Playlist: saves that have entered only some series are located again. The game keeps points totals and week records only for series the player has entered, while maximums cover every series, so the three lists can differ in length; 0.4.1 required them to match and stopped with "playlist data could not be located". Series the save has never entered are listed as not recorded and cannot be written. / 只参加过部分系列赛的存档不再提示“未能在存档中定位季节赛数据”；未参加过的系列赛显示为尚未记录，不可写入。
+- Playlist: saves that have entered only some series are located again. The game keeps points totals and week records only for series the player has entered, while maximums cover every series, so the three lists can differ in length; 0.4.1 required them to match and stopped with "playlist data could not be located". Series the save has never entered show as "Not in this save yet" and cannot be written. / 只参加过部分系列赛的存档不再提示“未能在存档中定位季节赛数据”；未参加过的系列赛显示为尚未记录，不可写入。
 - See [0.4.2 notes](docs/RELEASE-0.4.2.md).
 
 ## 0.4.1 · 2026-10-18 · Previous / 历史版本

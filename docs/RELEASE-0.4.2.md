@@ -26,4 +26,4 @@ Windows x64 · 安装版 / 免安装版 · 未签名 / NotSigned
 
 - **Cause.** The playlist keeps three lists keyed by series: points totals, week points and maximums. Maximums cover every series; totals and week points appear only once the player has entered a series. 0.4.1 required the three lists to have the same length. The reported save has 5, 3 and 7 entries.
 - **Fix.** Each list is parsed on its own. Complete parsing, byte-exact re-encoding, a single matching location and the catalog check on maximums are still required. Every series with week points must also have a total, which stops the tail of the totals list from reading as a second, shorter candidate.
-- **Series never entered.** They have no week records, show as not recorded and cannot be written.
+- **Series never entered.** They have no week records, show as "Not in this save yet" and cannot be written.
